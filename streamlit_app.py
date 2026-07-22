@@ -1,151 +1,173 @@
 import streamlit as st
 import pandas as pd
-import math
-from pathlib import Path
+import os
+import base64
+import streamlit.components.v1 as components
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
-)
+# 1. Ρύθμιση της σελίδας
+st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
+# 2. Το οπτικό κομμάτι (CSS) για το σκέτο γκρι φόντο
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #2c3e50 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
+# 3. Φόρτωση και Υπολογισμός Δεδομένων
+excel_filename = "sales_stores.xlsx"
+logo_filename = "logo.png"
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
+# Συνάρτηση για τη μετατροπή της τοπικής εικόνας σε μορφή που διαβάζει το HTML
+def get_base64_image(img_path):
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return ""
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+logo_base64 = get_base64_image(logo_filename)
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
-
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
-
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
-
-    return gdp_df
-
-gdp_df = get_gdp_data()
-
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
+if os.path.exists(excel_filename):
+    try:
+        # Διάβασμα αρχείου
+        df = pd.read_excel(excel_filename)
+        
+        # Έλεγχος αν υπάρχουν οι βασικές στήλες
+        if 'Κατάστημα' in df.columns and 'Πωλήσεις' in df.columns:
+            
+            # Μετατροπή σε αριθμητικά δεδομένα
+            df['Πωλήσεις'] = pd.to_numeric(df['Πωλήσεις'], errors='coerce').fillna(0)
+            
+            # Ταξινόμηση (οι περισσότερες πωλήσεις πάνω-πάνω)
+            df = df.sort_values(by='Πωλήσεις', ascending=False)
+            
+            # Εύρεση της μέγιστης τιμής για τη μπάρα
+            max_sales = df['Πωλήσεις'].max()
+            
+            # Χτίσιμο του πλήρους HTML και CSS μαζί
+            html_content = """
+            <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                margin: 0;
+                padding: 10px;
+                background: transparent;
+            }
+            .main-container {
+                background: rgba(0, 0, 0, 0.6);
+                padding: 25px;
+                border-radius: 15px;
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                max-width: 450px;
+                margin: auto;
+                text-align: center;
+            }
+            .logo-container {
+                margin-bottom: 15px;
+            }
+            .logo-img {
+                max-width: 180px;
+                height: auto;
+            }
+            .main-title {
+                color: white;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .sub-title {
+                color: #3498db;
+                font-size: 16px;
+                margin-bottom: 25px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .poll-item {
+                background: rgba(255, 255, 255, 0.08);
+                padding: 12px 18px;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                text-align: left;
+            }
+            .poll-info {
+                display: flex;
+                justify-content: space-between;
+                color: white;
+                font-size: 15px;
+                font-weight: 500;
+                margin-bottom: 8px;
+            }
+            .progress-bar-bg {
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 10px;
+                height: 12px;
+                width: 100%;
+                overflow: hidden;
+            }
+            .progress-fill {
+                background: #3498db;
+                height: 100%;
+                border-radius: 10px;
+            }
+            </style>
+            
+            <div class="main-container">
+            """
+            
+            # Προσθήκη του Logo αν υπάρχει στον φάκελο
+            if logo_base64:
+                html_content += f"""
+                <div class="logo-container">
+                    <img src="data:image/png;base64,{logo_base64}" class="logo-img" alt="Logo">
+                </div>
+                """
+                
+            html_content += """
+                <div class="main-title">Αποτελέσματα Πωλήσεων</div>
+                <div class="sub-title">TV ΣΠΑΜΕ ΤΙΣ ΤΙΜΕΣ</div>
+            """
+            
+            # Δημιουργία των γραμμών
+            for index, row in df.iterrows():
+                katastima = row['Κατάστημα']
+                posotita = row['Πωλήσεις']
+                
+                monada = "τεμ./κιλά"
+                
+                # Μορφοποίηση αριθμού
+                if float(posotita).is_integer():
+                    posotita_formatted = f"{int(posotita):,}"
+                else:
+                    posotita_formatted = f"{posotita:.3f}".rstrip('0').rstrip('.')
+                    posotita_formatted = posotita_formatted.replace('.', ',')
+                
+                # Υπολογισμός του πλάτους της μπάρας αναλογικά με το max
+                bar_width = round((posotita / max_sales) * 100) if max_sales > 0 else 0
+                
+                html_content += f"""
+                <div class="poll-item">
+                    <div class="poll-info">
+                        <span>{katastima}</span>
+                        <span>{posotita_formatted} {monada}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+            
+            html_content += '</div>'
+            
+            # Εμφάνιση του πίνακα
+            components.html(html_content, height=950, scrolling=True)
+            
         else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+            st.error("Το Excel πρέπει να έχει ακριβώς τις στήλες 'Κατάστημα' και 'Πωλήσεις'.")
+    except Exception as e:
+        st.error(f"Παρουσιάστηκε σφάλμα κατά την ανάγνωση: {e}")
+else:
+    st.info(f"Το αρχείο '{excel_filename}' δεν βρέθηκε στον φάκελο.")
