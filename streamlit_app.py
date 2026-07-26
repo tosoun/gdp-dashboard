@@ -17,7 +17,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 3. Φόρτωση και Υπολογισμός Δεδομένων
-excel_filename = excel_path = "data/tv sat sales.xlsx"
+excel_filename = excel_path = "tv sat sales.xlsx"
 logo_filename = "logo.png"
 
 # Συνάρτηση για τη μετατροπή της τοπικής εικόνας σε μορφή που διαβάζει το HTML
