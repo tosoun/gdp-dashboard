@@ -16,7 +16,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-excel_path = "data/tv sat sales.xlsx"
+excel_path = "tv sat sales.xlsx"
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
