@@ -284,9 +284,9 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- Καθαρό ηχητικό εφέ χειροκροτήματος (χωρίς φωνές/μπράβο) -->
+        <!-- Χρησιμοποιούμε απευθείας URL από MyInstants που είναι εγγυημένο ότι παίζει σε browsers -->
         <audio id="cheerAudio" preload="auto">
-            <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c365313d.mp3?filename=applause-2-6569.mp3" type="audio/mpeg">
+            <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
         </audio>
 
         <div class="top-left-area">
@@ -367,14 +367,13 @@ try:
                             const audio = document.getElementById('cheerAudio');
                             if(audio) {
                                 audio.play().catch(function(error) {
-                                    console.log("Autoplay blocked, waiting for touch/click");
-                                    const playOnClick = function() {
+                                    const playOnTouch = function() {
                                         audio.play();
-                                        document.removeEventListener('click', playOnClick);
-                                        document.removeEventListener('touchstart', playOnClick);
+                                        document.removeEventListener('click', playOnTouch);
+                                        document.removeEventListener('touchstart', playOnTouch);
                                     };
-                                    document.addEventListener('click', playOnClick);
-                                    document.addEventListener('touchstart', playOnClick);
+                                    document.addEventListener('click', playOnTouch);
+                                    document.addEventListener('touchstart', playOnTouch);
                                 });
                             }
                         });
