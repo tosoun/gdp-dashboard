@@ -220,7 +220,7 @@ try:
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
-            <div class="top-left-time" id="live-clock">--:--</div>
+            <div class="top-left-time">εως: <span id="live-clock">--:--</span></div>
         </div>
         
         <script>
@@ -230,11 +230,10 @@ try:
                 now.setHours(now.getHours() - 1);
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
-                // Χωρίς δευτερόλεπτα, μόνο Ώρα:Λεπτά
                 document.getElementById('live-clock').innerText = hours + ':' + minutes;
             }}
             updateClock();
-            setInterval(updateClock, 10000); // Ελέγχει κάθε 10 δευτερόλεπτα αν άλλαξε το λεπτό
+            setInterval(updateClock, 10000);
         </script>
     """
     
