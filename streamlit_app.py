@@ -50,13 +50,11 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
-        # Δημιουργία λίστας με επιλογές ανά μισή ώρα (00:00, 00:30, 01:00, ...)
         time_options = []
         for hour in range(24):
             for minute in (0, 30):
                 time_options.append(datetime.time(hour, minute))
         
-        # Εύρεση της κοντινότερης μισάωρης ώρας (προς τα πίσω)
         now = datetime.datetime.now() - datetime.timedelta(hours=1)
         default_minute = 0 if now.minute < 30 else 30
         default_time = datetime.time(now.hour, default_minute)
@@ -64,7 +62,6 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         if 'selected_half_hour' not in st.session_state:
             st.session_state.selected_half_hour = default_time
 
-        # Χρήση αναλογιών για να μικρύνει το πλαίσιο της ώρας και να χωρέσουν δίπλα οι επιλογές
         col_time, col_confetti, col_cheer = st.columns([1.2, 1, 1])
         
         with col_time:
@@ -82,7 +79,6 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         with col_cheer:
             cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
 
-        # Αυτόματη αποθήκευση μόλις ανέβει το αρχείο
         if uploaded_file is not None:
             with open(excel_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -291,6 +287,28 @@ try:
     </style>
     
     <div class="main-container">
+        <!-- Αυτόματο ξεκλείδωμα ήχου με το πρώτο άγγιγμα/κλικ στην οθόνη για iOS -->
+        <script>
+            const cheerAudio = new Audio('https://www.myinstants.com/media/sounds/applause.mp3');
+            let isAudioUnlocked = false;
+
+            function unlockIOSAudio() {{
+                if (!isAudioUnlocked) {{
+                    cheerAudio.play().then(() => {{
+                        cheerAudio.pause();
+                        cheerAudio.currentTime = 0;
+                        isAudioUnlocked = true;
+                        // Αφαίρεση των listeners μετά το πρώτο άγγιγμα
+                        document.removeEventListener('click', unlockIOSAudio);
+                        document.removeEventListener('touchstart', unlockIOSAudio);
+                    }}).catch(e => {{}});
+                }}
+            }}
+
+            document.addEventListener('click', unlockIOSAudio);
+            document.addEventListener('touchstart', unlockIOSAudio);
+        </script>
+
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
@@ -363,12 +381,17 @@ try:
                     </script>
                     """
                 
-                # Ηχητικό χειροκρότημα (Audio)
+                # Αυτόματη αναπαραγωγή χειροκροτήματος
                 if cheer_enabled:
                     html_content += """
-                    <audio autoplay>
-                        <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
-                    </audio>
+                    <script>
+                        setTimeout(function() {
+                            try {
+                                cheerAudio.currentTime = 0;
+                                cheerAudio.play().catch(err => console.log("Autoplay blocked:", err));
+                            } catch(e) {}
+                        }, 500);
+                    </script>
                     """
             else:
                 html_content += f"""
