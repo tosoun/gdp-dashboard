@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+from datetime import datetime, timedelta
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
@@ -115,6 +116,10 @@ try:
     else:
         max_sales = 1
 
+    # Υπολογισμός ώρας με 1 ώρα πίσω
+    current_time_minus_one = datetime.now() - timedelta(hours=1)
+    time_str = current_time_minus_one.strftime("%H:%M")
+
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -155,6 +160,14 @@ try:
         letter-spacing: 1px;
         text-transform: uppercase;
         margin-top: 2px;
+    }}
+
+    .top-left-time {{
+        color: #7f8c8d;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 1px;
     }}
 
     .pro-title {{
@@ -212,6 +225,7 @@ try:
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
+            <div class="top-left-time">{time_str}</div>
         </div>
     """
     
