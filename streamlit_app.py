@@ -83,7 +83,6 @@ try:
 
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <!-- ΕΙΣΑΓΩΓΗ ΕΠΑΓΓΕΛΜΑΤΙΚΗΣ ΚΑΙ ΚΟΜΨΗΣ ΓΡΑΜΜΑΤΟΣΕΙΡΑΣ (Montserrat) ΑΠΟ GOOGLE FONTS -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -108,22 +107,24 @@ try:
         text-align: center; 
     }}
     
-    .top-header-area {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
+    /* --- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΑΡΙΣΤΕΡΑ, ΚΑΘΕΤΑ --- */
+    .top-left-area {{
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        text-align: left;
     }}
 
-    .top-right-text {{
+    .top-left-text {{
         color: #3498db;
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1px;
         text-transform: uppercase;
+        margin-top: 2px;
     }}
+    --------------------------------------------
 
-    /* --- ΕΠΑΓΓΕΛΜΑΤΙΚΟ ΣΤΥΛ ΓΙΑ ΤΟ ΠΩΛΗΣΕΙΣ TV --- */
     .pro-title {{
         font-family: 'Montserrat', sans-serif;
         color: #ffffff;
@@ -144,7 +145,6 @@ try:
         letter-spacing: 3px; 
         text-transform: uppercase;
     }}
-    /* --------------------------------------------- */
 
     .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
     
@@ -177,11 +177,10 @@ try:
     </style>
     
     <div class="main-container">
-        <div class="top-header-area">
-            <div style="text-align: left;">
-                <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 65px; height: auto;">
-            </div>
-            <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
+        <!-- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΑΡΙΣΤΕΡΑ -->
+        <div class="top-left-area">
+            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
+            <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
         </div>
     """
     
