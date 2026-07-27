@@ -100,7 +100,7 @@ try:
         
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        # Καθαρισμός αριθμών (μετατροπή σε integer ασχέτως αν έχουν τελείες ή κόμματα)
+        # Καθαρισμός αριθμών
         df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
         df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
@@ -116,7 +116,7 @@ try:
     else:
         max_sales = 1
 
-    # Υπολογισμός ώρας με 1 ώρα πίσω (ανανεώνεται αυτόματα σε κάθε φόρτωση/ανανέωση)
+    # Δυναμικός υπολογισμός ώρας με 1 ώρα πίσω ακριβώς τη στιγμή εκτέλεσης
     current_time_minus_one = datetime.now() - timedelta(hours=1)
     time_str = current_time_minus_one.strftime("%H:%M")
 
