@@ -28,8 +28,9 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(excel_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             
-            # Αποθήκευση της τρέχουσας τοπικής ώρας την στιγμή του upload
-            current_time_str = (datetime.datetime.now() - datetime.timedelta(hours=1)).strftime("%H:%M")
+            # Ρύθμιση ώρας: Εδώ αφαιρούμε 3 ώρες συνολικά (UTC σε EEST + 1 ώρα πίσω για τη μέτρηση)
+            # Αν θες άλλη διαφορά, πειράζεις το numbers στο hours=...
+            current_time_str = (datetime.datetime.utcnow() - datetime.timedelta(hours=3)).strftime("%H:%M")
             with open(time_path, "w") as tf:
                 tf.write(current_time_str)
 
@@ -53,7 +54,7 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# Ανάγνωση της ώρας που αποθηκεύτηκε κατά το τελευταίο upload
+# Ανάγνωση της ώρας από το αρχείο καταγραφής
 file_time_str = "--:--"
 if os.path.exists(time_path):
     try:
