@@ -116,7 +116,7 @@ try:
     else:
         max_sales = 1
 
-    # Υπολογισμός ώρας με 1 ώρα πίσω
+    # Υπολογισμός ώρας με 1 ώρα πίσω (ανανεώνεται αυτόματα σε κάθε φόρτωση/ανανέωση)
     current_time_minus_one = datetime.now() - timedelta(hours=1)
     time_str = current_time_minus_one.strftime("%H:%M")
 
