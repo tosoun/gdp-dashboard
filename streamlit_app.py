@@ -25,10 +25,12 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
-        default_now = (datetime.datetime.now() - datetime.timedelta(hours=1)).time()
-        selected_time = st.time_input("Επιλέξτε την ώρα αναφοράς (1 ώρα πίσω):", value=default_now)
+        # Αρχικοποίηση της μνήμης για την ώρα αν δεν υπάρχει
+        if 'selected_time_val' not in st.session_state:
+            st.session_state.selected_time_val = (datetime.datetime.now() - datetime.timedelta(hours=1)).time()
+
+        selected_time = st.time_input("Επιλέξτε την ώρα αναφοράς:", value=st.session_state.selected_time_val, key='time_input_key')
         
-        # Προσθήκη ξεχωριστού κουμπιού για να αποθηκεύονται σίγουρα οι αλλαγές
         if st.button("Αποθήκευση Αρχείου & Ώρας"):
             if uploaded_file is not None:
                 with open(excel_path, "wb") as f:
