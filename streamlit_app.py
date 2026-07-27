@@ -25,31 +25,46 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
-        # Αρχικοποίηση της μνήμης για την ώρα αν δεν υπάρχει
-        if 'selected_time_val' not in st.session_state:
-            st.session_state.selected_time_val = (datetime.datetime.now() - datetime.timedelta(hours=1)).time()
-
-        selected_time = st.time_input("Επιλέξτε την ώρα αναφοράς:", value=st.session_state.selected_time_val, key='time_input_key')
+        # Δημιουργία λίστας με επιλογές ανά μισή ώρα (00:00, 00:30, 01:00, ...)
+        time_options = []
+        for hour in range(24):
+            for minute in (0, 30):
+                time_options.append(datetime.time(hour, minute))
         
-        if st.button("Αποθήκευση Αρχείου & Ώρας"):
-            if uploaded_file is not None:
-                with open(excel_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-            
-                current_time_str = selected_time.strftime("%H:%M")
-                with open(time_path, "w", encoding="utf-8") as tf:
-                    tf.write(current_time_str)
+        # Εύρεση της κοντινότερης μισάωρης ώρας (προς τα πίσω)
+        now = datetime.datetime.now() - datetime.timedelta(hours=1)
+        default_minute = 0 if now.minute < 30 else 30
+        default_time = datetime.time(now.hour, default_minute)
+        
+        if 'selected_half_hour' not in st.session_state:
+            st.session_state.selected_half_hour = default_time
 
-                st.success("Επιτυχής αποθήκευση! Γίνεται ανανέωση...")
-                components.html("""
-                    <script>
-                        setTimeout(function() {
-                            window.parent.location.reload();
-                        }, 1000);
-                    </script>
-                """, height=0)
-            else:
-                st.warning("Παρακαλώ επιλέξτε πρώτα αρχείο Excel!")
+        # Χρήση selectbox για επιλογή ανά μισή ώρα ακριβώς
+        selected_time = st.selectbox(
+            "Επιλέξτε την ώρα αναφοράς (ανά μισή ώρα):",
+            options=time_options,
+            index=time_options.index(st.session_state.selected_half_hour) if st.session_state.selected_half_hour in time_options else 0,
+            format_func=lambda x: x.strftime("%H:%M")
+        )
+        st.session_state.selected_half_hour = selected_time
+
+        # Αυτόματη αποθήκευση μόλις ανέβει το αρχείο
+        if uploaded_file is not None:
+            with open(excel_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+        
+            current_time_str = selected_time.strftime("%H:%M")
+            with open(time_path, "w", encoding="utf-8") as tf:
+                tf.write(current_time_str)
+
+            st.success("Το αρχείο και η ώρα αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
+            components.html("""
+                <script>
+                    setTimeout(function() {
+                        window.parent.location.reload();
+                    }, 1000);
+                </script>
+            """, height=0)
     elif password:
         st.error("Λάθος κωδικός!")
 
