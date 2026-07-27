@@ -105,10 +105,14 @@ try:
         text-align: center; 
     }}
     
+    .top-header-area {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }}
+
     .top-right-text {{
-        position: absolute;
-        top: 15px;
-        right: 18px;
         color: #3498db;
         font-size: 15px;
         font-weight: bold;
@@ -116,7 +120,7 @@ try:
         text-transform: uppercase;
     }}
 
-    .main-title {{ color: white; font-size: 32px; font-weight: bold; margin-bottom: 5px; margin-top: 10px; }}
+    .main-title {{ color: white; font-size: 32px; font-weight: bold; margin-bottom: 5px; margin-top: 5px; }}
     .tv-big {{ color: white; font-size: 38px; font-weight: bold; margin-bottom: 25px; letter-spacing: 2px; }}
     .sub-title {{ color: #3498db; font-size: 16px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }}
     
@@ -150,11 +154,12 @@ try:
     </style>
     
     <div class="main-container">
-        <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
-        
-        <!-- ΣΤΑΘΕΡΟ LOGO ΧΩΡΙΣ ΚΙΝΗΣΗ -->
-        <div style="text-align: center; margin-bottom: 15px;">
-            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 90px; height: auto;">
+        <!-- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΜΑΖΙ ΠΑΝΩ-ΠΑΝΩ -->
+        <div class="top-header-area">
+            <div style="text-align: left;">
+                <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 65px; height: auto;">
+            </div>
+            <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
         </div>
     """
     
@@ -236,6 +241,6 @@ try:
     html_content += '<div class="watermark">tosoun 2026</div>'
     
     html_content += '</div>'
-    components.html(html_content, height=1080, scrolling=True)
+    components.html(html_content, height=1050, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
