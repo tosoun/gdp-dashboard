@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import datetime
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
@@ -44,6 +45,17 @@ def load_data():
         except Exception as e:
             return pd.DataFrame()
     return pd.DataFrame()
+
+# Υπολογισμός ώρας τελευταίας τροποποίησης του αρχείου Excel (μείον 1 ώρα)
+file_time_str = "--:--"
+if os.path.exists(excel_path):
+    try:
+        mod_time = os.path.getmtime(excel_path)
+        # Μετατροπή σε datetime και αφαίρεση 1 ώρας
+        dt = datetime.datetime.fromtimestamp(mod_time) - datetime.timedelta(hours=1)
+        file_time_str = dt.strftime("%H:%M")
+    except Exception:
+        pass
 
 try:
     df = load_data()
@@ -220,21 +232,8 @@ try:
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
-            <div class="top-left-time">εως: <span id="live-clock">--:--</span></div>
+            <div class="top-left-time">εως: {file_time_str}</div>
         </div>
-        
-        <script>
-            function updateClock() {{
-                const now = new Date();
-                // Αφαίρεση 1 ώρας
-                now.setHours(now.getHours() - 1);
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                document.getElementById('live-clock').innerText = hours + ':' + minutes;
-            }}
-            updateClock();
-            setInterval(updateClock, 10000);
-        </script>
     """
     
     html_content += f'<div class="pro-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
