@@ -25,6 +25,7 @@ st.markdown("""
 excel_path = "tv sat sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
+cheer_path = "cheer_status.txt"
 
 # Ανάγνωση τρέχουσας κατάστασης κομφετί
 confetti_enabled = True
@@ -32,6 +33,15 @@ if os.path.exists(confetti_path):
     try:
         with open(confetti_path, "r", encoding="utf-8") as cf:
             confetti_enabled = cf.read().strip() == "True"
+    except Exception:
+        pass
+
+# Ανάγνωση τρέχουσας κατάστασης χειροκροτήματος
+cheer_enabled = True
+if os.path.exists(cheer_path):
+    try:
+        with open(cheer_path, "r", encoding="utf-8") as ch:
+            cheer_enabled = ch.read().strip() == "True"
     except Exception:
         pass
 
@@ -54,12 +64,12 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         if 'selected_half_hour' not in st.session_state:
             st.session_state.selected_half_hour = default_time
 
-        # Χρήση columns για να μπουν δίπλα-δίκλα η ώρα και η επιλογή για το κομφετί
-        col_time, col_confetti = st.columns([2, 1])
+        # Χρήση αναλογιών για να μικρύνει το πλαίσιο της ώρας και να χωρέσουν δίπλα οι επιλογές
+        col_time, col_confetti, col_cheer = st.columns([1.2, 1, 1])
         
         with col_time:
             selected_time = st.selectbox(
-                "Ώρα αναφοράς (ανά μισή ώρα):",
+                "Ώρα αναφοράς:",
                 options=time_options,
                 index=time_options.index(st.session_state.selected_half_hour) if st.session_state.selected_half_hour in time_options else 0,
                 format_func=lambda x: x.strftime("%H:%M")
@@ -68,6 +78,9 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 
         with col_confetti:
             confetti_choice = st.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1, horizontal=True)
+
+        with col_cheer:
+            cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
 
         # Αυτόματη αποθήκευση μόλις ανέβει το αρχείο
         if uploaded_file is not None:
@@ -80,6 +93,9 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 
             with open(confetti_path, "w", encoding="utf-8") as cf:
                 cf.write(str(confetti_choice == "ΝΑΙ"))
+
+            with open(cheer_path, "w", encoding="utf-8") as ch:
+                ch.write(str(cheer_choice == "ΝΑΙ"))
 
             st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
             components.html("""
@@ -320,7 +336,8 @@ try:
                     </div>
                 </div>
                 """
-                # Προσθήκη κομφετί μόνο αν είναι επιλεγμένο το ΝΑΙ
+                
+                # Εφέ κομφετί
                 if confetti_enabled:
                     html_content += f"""
                     <script>
@@ -344,6 +361,14 @@ try:
                             }}
                         }}, 300);
                     </script>
+                    """
+                
+                # Ηχητικό χειροκρότημα (Audio)
+                if cheer_enabled:
+                    html_content += """
+                    <audio autoplay>
+                        <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+                    </audio>
                     """
             else:
                 html_content += f"""
