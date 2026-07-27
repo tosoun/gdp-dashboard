@@ -135,6 +135,17 @@ try:
     .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
+    
+    /* --- ΣΤΥΛ ΓΙΑ ΤΟ ΥΔΑΤΟΓΡΑΦΗΜΑ --- */
+    .watermark {{
+        color: rgba(255, 255, 255, 0.25);
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin-top: 20px;
+        text-transform: uppercase;
+        user-select: none;
+    }}
     </style>
     
     <div class="main-container">
@@ -144,7 +155,6 @@ try:
         <div style="text-align: center; margin-bottom: 15px;">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 90px; height: auto;">
         </div>
-        <!-- --------------------------- -->
     """
     
     html_content += f'<div class="main-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
@@ -221,7 +231,10 @@ try:
     else:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
+    # ΠΡΟΣΘΗΚΗ ΥΔΑΤΟΓΡΑΦΗΜΑΤΟΣ ΣΤΟ ΤΕΛΟΣ ΤΟΥ HTML CONTAINER
+    html_content += '<div class="watermark">tosoun 2026</div>'
+    
     html_content += '</div>'
-    components.html(html_content, height=1050, scrolling=True)
+    components.html(html_content, height=1080, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
