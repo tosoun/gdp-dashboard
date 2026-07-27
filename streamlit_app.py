@@ -116,7 +116,7 @@ try:
         text-transform: uppercase;
     }}
 
-    .main-title {{ color: white; font-size: 34px; font-weight: bold; margin-bottom: 5px; margin-top: 10px; }}
+    .main-title {{ color: white; font-size: 32px; font-weight: bold; margin-bottom: 5px; margin-top: 10px; }}
     .tv-big {{ color: white; font-size: 38px; font-weight: bold; margin-bottom: 25px; letter-spacing: 2px; }}
     .sub-title {{ color: #3498db; font-size: 16px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }}
     
@@ -139,6 +139,10 @@ try:
     
     <div class="main-container">
         <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
+        
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 90px; height: auto;">
+        </div>
     """
     
     html_content += f'<div class="main-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
@@ -216,6 +220,6 @@ try:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
     html_content += '</div>'
-    components.html(html_content, height=950, scrolling=True)
+    components.html(html_content, height=1050, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
