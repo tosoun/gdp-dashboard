@@ -284,9 +284,10 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- Χρησιμοποιούμε απευθείας URL από MyInstants που είναι εγγυημένο ότι παίζει σε browsers -->
+        <!-- Εναλλακτικό, καθαρό link ήχου χειροκροτήματος από Wikimedia Commons (πολύ αξιόπιστο σε iOS) -->
         <audio id="cheerAudio" preload="auto">
-            <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+            <source src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Applause.ogg" type="audio/ogg">
+            <source src="https://www.soundjay.com/human/sounds/applause-01.mp3" type="audio/mpeg">
         </audio>
 
         <div class="top-left-area">
