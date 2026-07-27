@@ -284,9 +284,9 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- Ενσωματωμένο HTML5 Audio στοιχείο ορατό ή αόρατο με user gesture fallback -->
+        <!-- Καθαρό ηχητικό εφέ χειροκροτήματος (χωρίς φωνές/μπράβο) -->
         <audio id="cheerAudio" preload="auto">
-            <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+            <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c365313d.mp3?filename=applause-2-6569.mp3" type="audio/mpeg">
         </audio>
 
         <div class="top-left-area">
@@ -350,7 +350,7 @@ try:
                                         particleCount: 100,
                                         spread: 80,
                                         origin: {{ x: x, y: y }}
-                                    }};
+                                    }});
                                 }};
 
                                 triggerConfetti();
