@@ -23,26 +23,22 @@ time_path = "upload_time.txt"
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
+        # Χειροκίνητη επιλογή ώρας 
+        default_now = (datetime.datetime.now() - datetime.timedelta(hours=1)).time()
+        selected_time = st.time_input("Επιλέξτε την ώρα αναφοράς (1 ώρα πίσω):", value=default_now)
         
-        # Επιλογή ώρας χειροκίνητα για να είσαι 100% σίγουρος
-        default_now = datetime.datetime.now().time()
-        selected_time = st.time_input("Επιλέξτε την τρέχουσα τοπική ώρα:", value=default_now)
+        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
         if uploaded_file is not None:
             with open(excel_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             
-            # Υπολογισμός: Επιλεγμένη ώρα μείον 1 ώρα
-            today_date = datetime.date.today()
-            full_dt = datetime.datetime.combine(today_date, selected_time)
-            adjusted_dt = full_dt - datetime.timedelta(hours=1)
-            
-            current_time_str = adjusted_dt.strftime("%H:%M")
-            with open(time_path, "w") as tf:
+            # Απευθείας αποθήκευση της ώρας που επέλεξες
+            current_time_str = selected_time.strftime("%H:%M")
+            with open(time_path, "w", encoding="utf-8") as tf:
                 tf.write(current_time_str)
 
-            st.success("Το αρχείο ενημερώθηκε επιτυχώς! Γίνεται ανανέωση...")
+            st.success("Το αρχείο και η ώρα ενημερώθηκαν επιτυχώς! Γίνεται ανανέωση...")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -62,11 +58,11 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# Ανάγνωση της ώρας από το αρχείο καταγραφής
+# Ανάγνωση της ώρας από το αρχείο κειμένου
 file_time_str = "--:--"
 if os.path.exists(time_path):
     try:
-        with open(time_path, "r") as tf:
+        with open(time_path, "r", encoding="utf-8") as tf:
             file_time_str = tf.read().strip()
     except Exception:
         pass
@@ -77,7 +73,6 @@ try:
     custom_title = "ΕΙΔΟΣ"
     
     if not df.empty:
-        # Αναζήτηση τίτλου είδους από τις πρώτες γραμμές
         for i in range(min(5, len(df))):
             for j in range(len(df.columns)):
                 val = str(df.iloc[i, j]).strip()
@@ -87,7 +82,6 @@ try:
             if custom_title != "ΕΙΔΟΣ":
                 break
 
-        # Εντοπισμός γραμμής κεφαλίδων (Κατάστημα, Ποσότητες)
         header_row_idx = 0
         for i in range(min(5, len(df))):
             row_str = str(df.iloc[i].values).lower()
@@ -95,11 +89,9 @@ try:
                 header_row_idx = i
                 break
 
-        # Ορισμός κεφαλίδων και καθαρισμός δεδομένων κάτω από την κεφαλίδα
         df.columns = df.iloc[header_row_idx]
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
 
-        # Εύρεση σωστής στήλης καταστήματος και ποσότητας δυναμικά
         col_kat = None
         col_pos = None
         for col in df.columns:
@@ -109,7 +101,6 @@ try:
             elif "ποσοτ" in col_str:
                 col_pos = col
 
-        # Fallback αν δεν βρεθούν με ακρίβεια οι επικεφαλίδες
         if col_kat is None:
             col_kat = df.columns[0]
         if col_pos is None:
@@ -125,7 +116,6 @@ try:
         
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        # Καθαρισμός αριθμών
         df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
         df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
