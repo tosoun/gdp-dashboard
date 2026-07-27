@@ -283,8 +283,7 @@ try:
     }}
     </style>
     
-    <div class="main-container">
-        <!-- Εναλλακτικό, καθαρό link ήχου χειροκροτήματος από Wikimedia Commons (πολύ αξιόπιστο σε iOS) -->
+    <div class="main-container" id="touchContainer">
         <audio id="cheerAudio" preload="auto">
             <source src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Applause.ogg" type="audio/ogg">
             <source src="https://www.soundjay.com/human/sounds/applause-01.mp3" type="audio/mpeg">
