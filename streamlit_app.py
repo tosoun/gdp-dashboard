@@ -18,6 +18,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 excel_path = "tv sat sales.xlsx"
+time_path = "upload_time.txt"
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
@@ -26,6 +27,12 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         if uploaded_file is not None:
             with open(excel_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
+            
+            # Αποθήκευση της τρέχουσας τοπικής ώρας την στιγμή του upload
+            current_time_str = (datetime.datetime.now() - datetime.timedelta(hours=1)).strftime("%H:%M")
+            with open(time_path, "w") as tf:
+                tf.write(current_time_str)
+
             st.success("Το αρχείο ενημερώθηκε επιτυχώς! Γίνεται ανανέωση...")
             components.html("""
                 <script>
@@ -46,14 +53,12 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# Υπολογισμός ώρας τελευταίας τροποποίησης με διόρθωση ζώνης ώρας (Ελλάδα UTC+3)
+# Ανάγνωση της ώρας που αποθηκεύτηκε κατά το τελευταίο upload
 file_time_str = "--:--"
-if os.path.exists(excel_path):
+if os.path.exists(time_path):
     try:
-        mod_time = os.path.getmtime(excel_path)
-        # Προσθήκη 3 ωρών για να ταιριάζει με την ώρα Ελλάδος
-        dt = datetime.datetime.fromtimestamp(mod_time) + datetime.timedelta(hours=3)
-        file_time_str = dt.strftime("%H:%M")
+        with open(time_path, "r") as tf:
+            file_time_str = tf.read().strip()
     except Exception:
         pass
 
