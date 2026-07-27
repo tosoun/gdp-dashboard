@@ -15,7 +15,6 @@ st.markdown("""
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Λευκά γράμματα για τα labels στις επιλογές του admin */
     div[data-baseweb="select"] > div, .stRadio label p {
         color: white !important;
     }
@@ -27,7 +26,6 @@ time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
 
-# Ανάγνωση τρέχουσας κατάστασης κομφετί
 confetti_enabled = True
 if os.path.exists(confetti_path):
     try:
@@ -36,7 +34,6 @@ if os.path.exists(confetti_path):
     except Exception:
         pass
 
-# Ανάγνωση τρέχουσας κατάστασης χειροκροτήματος
 cheer_enabled = True
 if os.path.exists(cheer_path):
     try:
@@ -287,27 +284,10 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- Αυτόματο ξεκλείδωμα ήχου με το πρώτο άγγιγμα/κλικ στην οθόνη για iOS -->
-        <script>
-            const cheerAudio = new Audio('https://www.myinstants.com/media/sounds/applause.mp3');
-            let isAudioUnlocked = false;
-
-            function unlockIOSAudio() {{
-                if (!isAudioUnlocked) {{
-                    cheerAudio.play().then(() => {{
-                        cheerAudio.pause();
-                        cheerAudio.currentTime = 0;
-                        isAudioUnlocked = true;
-                        // Αφαίρεση των listeners μετά το πρώτο άγγιγμα
-                        document.removeEventListener('click', unlockIOSAudio);
-                        document.removeEventListener('touchstart', unlockIOSAudio);
-                    }}).catch(e => {{}});
-                }}
-            }}
-
-            document.addEventListener('click', unlockIOSAudio);
-            document.addEventListener('touchstart', unlockIOSAudio);
-        </script>
+        <!-- Ενσωματωμένο HTML5 Audio στοιχείο ορατό ή αόρατο με user gesture fallback -->
+        <audio id="cheerAudio" preload="auto">
+            <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+        </audio>
 
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
@@ -355,7 +335,6 @@ try:
                 </div>
                 """
                 
-                # Εφέ κομφετί
                 if confetti_enabled:
                     html_content += f"""
                     <script>
@@ -371,7 +350,7 @@ try:
                                         particleCount: 100,
                                         spread: 80,
                                         origin: {{ x: x, y: y }}
-                                    }});
+                                    }};
                                 }};
 
                                 triggerConfetti();
@@ -381,16 +360,24 @@ try:
                     </script>
                     """
                 
-                # Αυτόματη αναπαραγωγή χειροκροτήματος
                 if cheer_enabled:
                     html_content += """
                     <script>
-                        setTimeout(function() {
-                            try {
-                                cheerAudio.currentTime = 0;
-                                cheerAudio.play().catch(err => console.log("Autoplay blocked:", err));
-                            } catch(e) {}
-                        }, 500);
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const audio = document.getElementById('cheerAudio');
+                            if(audio) {
+                                audio.play().catch(function(error) {
+                                    console.log("Autoplay blocked, waiting for touch/click");
+                                    const playOnClick = function() {
+                                        audio.play();
+                                        document.removeEventListener('click', playOnClick);
+                                        document.removeEventListener('touchstart', playOnClick);
+                                    };
+                                    document.addEventListener('click', playOnClick);
+                                    document.addEventListener('touchstart', playOnClick);
+                                });
+                            }
+                        });
                     </script>
                     """
             else:
