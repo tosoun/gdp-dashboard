@@ -230,11 +230,11 @@ try:
                 now.setHours(now.getHours() - 1);
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                document.getElementById('live-clock').innerText = hours + ':' + minutes + ':' + seconds;
+                // Χωρίς δευτερόλεπτα, μόνο Ώρα:Λεπτά
+                document.getElementById('live-clock').innerText = hours + ':' + minutes;
             }}
             updateClock();
-            setInterval(updateClock, 1000);
+            setInterval(updateClock, 10000); // Ελέγχει κάθε 10 δευτερόλεπτα αν άλλαξε το λεπτό
         </script>
     """
     
