@@ -23,29 +23,31 @@ time_path = "upload_time.txt"
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        # Χειροκίνητη επιλογή ώρας 
+        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
+        
         default_now = (datetime.datetime.now() - datetime.timedelta(hours=1)).time()
         selected_time = st.time_input("Επιλέξτε την ώρα αναφοράς (1 ώρα πίσω):", value=default_now)
         
-        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
-        
-        if uploaded_file is not None:
-            with open(excel_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+        # Προσθήκη ξεχωριστού κουμπιού για να αποθηκεύονται σίγουρα οι αλλαγές
+        if st.button("Αποθήκευση Αρχείου & Ώρας"):
+            if uploaded_file is not None:
+                with open(excel_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
             
-            # Απευθείας αποθήκευση της ώρας που επέλεξες
-            current_time_str = selected_time.strftime("%H:%M")
-            with open(time_path, "w", encoding="utf-8") as tf:
-                tf.write(current_time_str)
+                current_time_str = selected_time.strftime("%H:%M")
+                with open(time_path, "w", encoding="utf-8") as tf:
+                    tf.write(current_time_str)
 
-            st.success("Το αρχείο και η ώρα ενημερώθηκαν επιτυχώς! Γίνεται ανανέωση...")
-            components.html("""
-                <script>
-                    setTimeout(function() {
-                        window.parent.location.reload();
-                    }, 1000);
-                </script>
-            """, height=0)
+                st.success("Επιτυχής αποθήκευση! Γίνεται ανανέωση...")
+                components.html("""
+                    <script>
+                        setTimeout(function() {
+                            window.parent.location.reload();
+                        }, 1000);
+                    </script>
+                """, height=0)
+            else:
+                st.warning("Παρακαλώ επιλέξτε πρώτα αρχείο Excel!")
     elif password:
         st.error("Λάθος κωδικός!")
 
@@ -58,7 +60,6 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# Ανάγνωση της ώρας από το αρχείο κειμένου
 file_time_str = "--:--"
 if os.path.exists(time_path):
     try:
