@@ -284,13 +284,11 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- Χρησιμοποιούμε απευθείας URL από MyInstants που είναι εγγυημένο ότι παίζει σε browsers -->
         <audio id="cheerAudio" preload="auto">
             <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
         </audio>
 
         <div class="top-left-area">
-            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
             <div class="top-left-time">εως: {file_time_str}</div>
         </div>
