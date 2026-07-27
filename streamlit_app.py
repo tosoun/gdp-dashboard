@@ -83,6 +83,9 @@ try:
 
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <!-- ΕΙΣΑΓΩΓΗ ΚΑΛΛΙΓΡΑΦΙΚΗΣ ΓΡΑΜΜΑΤΟΣΕΙΡΑΣ (Dancing Script) ΑΠΟ GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
     <style>
     @keyframes blink-number-slow {{
         0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
@@ -120,8 +123,27 @@ try:
         text-transform: uppercase;
     }}
 
-    .main-title {{ color: white; font-size: 32px; font-weight: bold; margin-bottom: 5px; margin-top: 5px; }}
-    .tv-big {{ color: white; font-size: 38px; font-weight: bold; margin-bottom: 25px; letter-spacing: 2px; }}
+    /* --- ΚΑΛΛΙΓΡΑΦΙΚΗ ΓΡΑΜΜΑΤΟΣΕΙΡΑ ΓΙΑ ΤΟ ΠΩΛΗΣΕΙΣ TV --- */
+    .calligraphy-title {{
+        font-family: 'Dancing Script', cursive;
+        color: white;
+        font-size: 44px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        margin-top: 5px;
+        letter-spacing: 1px;
+    }}
+    
+    .tv-big {{ 
+        font-family: 'Dancing Script', cursive;
+        color: #3498db; 
+        font-size: 48px; 
+        font-weight: bold; 
+        margin-bottom: 25px; 
+        letter-spacing: 2px; 
+    }}
+    /* -------------------------------------------------- */
+
     .sub-title {{ color: #3498db; font-size: 16px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }}
     
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
@@ -140,7 +162,6 @@ try:
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
     
-    /* --- ΥΔΑΤΟΓΡΑΦΗΜΑ ΤΕΡΜΑ ΔΕΞΙΑ, ΜΙΚΡΑ ΓΡΑΜΜΑΤΑ --- */
     .watermark {{
         text-align: right;
         color: rgba(255, 255, 255, 0.2);
@@ -154,7 +175,6 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΜΑΖΙ ΠΑΝΩ-ΠΑΝΩ -->
         <div class="top-header-area">
             <div style="text-align: left;">
                 <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 65px; height: auto;">
@@ -163,7 +183,7 @@ try:
         </div>
     """
     
-    html_content += f'<div class="main-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="calligraphy-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
@@ -237,9 +257,7 @@ try:
     else:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
-    # ΥΔΑΤΟΓΡΑΦΗΜΑ ΜΙΚΡΑ ΓΡΑΜΜΑΤΑ ΤΕΡΜΑ ΔΕΞΙΑ
     html_content += '<div class="watermark">tosoun 2026</div>'
-    
     html_content += '</div>'
     components.html(html_content, height=1050, scrolling=True)
 except Exception as e:
