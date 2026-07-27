@@ -136,13 +136,14 @@ try:
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
     
-    /* --- ΣΤΥΛ ΓΙΑ ΤΟ ΥΔΑΤΟΓΡΑΦΗΜΑ --- */
+    /* --- ΥΔΑΤΟΓΡΑΦΗΜΑ ΤΕΡΜΑ ΔΕΞΙΑ, ΜΙΚΡΑ ΓΡΑΜΜΑΤΑ --- */
     .watermark {{
-        color: rgba(255, 255, 255, 0.25);
-        font-size: 12px;
-        font-weight: bold;
-        letter-spacing: 2px;
-        margin-top: 20px;
+        text-align: right;
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 10px;
+        letter-spacing: 1px;
+        margin-top: 15px;
+        margin-right: 5px;
         text-transform: uppercase;
         user-select: none;
     }}
@@ -231,7 +232,7 @@ try:
     else:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
-    # ΠΡΟΣΘΗΚΗ ΥΔΑΤΟΓΡΑΦΗΜΑΤΟΣ ΣΤΟ ΤΕΛΟΣ ΤΟΥ HTML CONTAINER
+    # ΥΔΑΤΟΓΡΑΦΗΜΑ ΜΙΚΡΑ ΓΡΑΜΜΑΤΑ ΤΕΡΜΑ ΔΕΞΙΑ
     html_content += '<div class="watermark">tosoun 2026</div>'
     
     html_content += '</div>'
