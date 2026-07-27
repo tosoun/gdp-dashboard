@@ -116,7 +116,7 @@ try:
         text-transform: uppercase;
     }}
 
-    .main-title {{ color: white; font-size: 24px; font-weight: bold; margin-bottom: 5px; margin-top: 10px; }}
+    .main-title {{ color: white; font-size: 34px; font-weight: bold; margin-bottom: 5px; margin-top: 10px; }}
     .tv-big {{ color: white; font-size: 38px; font-weight: bold; margin-bottom: 25px; letter-spacing: 2px; }}
     .sub-title {{ color: #3498db; font-size: 16px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }}
     
