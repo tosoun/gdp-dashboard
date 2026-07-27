@@ -19,6 +19,16 @@ st.markdown("""
 
 excel_path = "tv sat sales.xlsx"
 time_path = "upload_time.txt"
+confetti_path = "confetti_status.txt"
+
+# Ανάγνωση τρέχουσας κατάστασης κομφετί
+confetti_enabled = True
+if os.path.exists(confetti_path):
+    try:
+        with open(confetti_path, "r", encoding="utf-8") as cf:
+            confetti_enabled = cf.read().strip() == "True"
+    except Exception:
+        pass
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
@@ -39,14 +49,20 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         if 'selected_half_hour' not in st.session_state:
             st.session_state.selected_half_hour = default_time
 
-        # Χρήση selectbox για επιλογή ανά μισή ώρα ακριβώς
-        selected_time = st.selectbox(
-            "Επιλέξτε την ώρα αναφοράς (ανά μισή ώρα):",
-            options=time_options,
-            index=time_options.index(st.session_state.selected_half_hour) if st.session_state.selected_half_hour in time_options else 0,
-            format_func=lambda x: x.strftime("%H:%M")
-        )
-        st.session_state.selected_half_hour = selected_time
+        # Χρήση columns για να μπουν δίπλα-δίκλα η ώρα και η επιλογή για το κομφετί
+        col_time, col_confetti = st.columns([2, 1])
+        
+        with col_time:
+            selected_time = st.selectbox(
+                "Ώρα αναφοράς (ανά μισή ώρα):",
+                options=time_options,
+                index=time_options.index(st.session_state.selected_half_hour) if st.session_state.selected_half_hour in time_options else 0,
+                format_func=lambda x: x.strftime("%H:%M")
+            )
+            st.session_state.selected_half_hour = selected_time
+
+        with col_confetti:
+            confetti_choice = st.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1)
 
         # Αυτόματη αποθήκευση μόλις ανέβει το αρχείο
         if uploaded_file is not None:
@@ -57,7 +73,10 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(time_path, "w", encoding="utf-8") as tf:
                 tf.write(current_time_str)
 
-            st.success("Το αρχείο και η ώρα αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
+            with open(confetti_path, "w", encoding="utf-8") as cf:
+                cf.write(str(confetti_choice == "ΝΑΙ"))
+
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -295,28 +314,32 @@ try:
                         <div class="progress-fill" style="width: {bar_width}%;"></div>
                     </div>
                 </div>
-                <script>
-                    setTimeout(function() {{
-                        const card = document.getElementById('first-store-card');
-                        if(card) {{
-                            const rect = card.getBoundingClientRect();
-                            const x = (rect.left + rect.width / 2) / window.innerWidth;
-                            const y = (rect.top + rect.height / 2) / window.innerHeight;
-                            
-                            const triggerConfetti = () => {{
-                                confetti({{
-                                    particleCount: 100,
-                                    spread: 80,
-                                    origin: {{ x: x, y: y }}
-                                }});
-                            }};
-
-                            triggerConfetti();
-                            setTimeout(triggerConfetti, 3000);
-                        }}
-                    }}, 300);
-                </script>
                 """
+                # Προσθήκη κομφετί μόνο αν είναι επιλεγμένο το ΝΑΙ
+                if confetti_enabled:
+                    html_content += f"""
+                    <script>
+                        setTimeout(function() {{
+                            const card = document.getElementById('first-store-card');
+                            if(card) {{
+                                const rect = card.getBoundingClientRect();
+                                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                                
+                                const triggerConfetti = () => {{
+                                    confetti({{
+                                        particleCount: 100,
+                                        spread: 80,
+                                        origin: {{ x: x, y: y }}
+                                    }});
+                                }};
+
+                                triggerConfetti();
+                                setTimeout(triggerConfetti, 3000);
+                            }}
+                        }}, 300);
+                    </script>
+                    """
             else:
                 html_content += f"""
                 <div class="poll-item">
