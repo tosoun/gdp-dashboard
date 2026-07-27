@@ -89,13 +89,6 @@ try:
         50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
         100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
     }}
-    
-    /* --- ΝΕΟ ANIMATION ΓΙΑ ΠΕΡΙΣΤΡΟΦΗ ΚΑΘΕΤΟΥ ΑΞΟΝΑ --- */
-    @keyframes slow-rotate-y {{
-        0% {{ transform: rotateY(0deg); }}
-        100% {{ transform: rotateY(360deg); }}
-    }}
-    /* ------------------------------------------------- */
 
     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 10px; background: transparent; }}
     
@@ -147,11 +140,11 @@ try:
     <div class="main-container">
         <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
         
-        <!-- ΕΔΩ ΕΦΑΡΜΟΖΕΤΑΙ Η ΚΙΝΗΣΗ ΣΤΟ LOGO -->
+        <!-- ΣΤΑΘΕΡΟ LOGO ΧΩΡΙΣ ΚΙΝΗΣΗ -->
         <div style="text-align: center; margin-bottom: 15px;">
-            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 90px; height: auto; animation: slow-rotate-y 5s linear infinite;">
+            <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 90px; height: auto;">
         </div>
-        <!-- ------------------------------------ -->
+        <!-- --------------------------- -->
     """
     
     html_content += f'<div class="main-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
