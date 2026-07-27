@@ -51,23 +51,57 @@ try:
     custom_title = "ΕΙΔΟΣ"
     
     if not df.empty:
-        for i in range(min(3, len(df))):
-            val = str(df.iloc[i, 0]).strip()
-            if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "ποσοτ" in val.lower():
-                custom_title = val
+        # Αναζήτηση τίτλου είδους από τις πρώτες γραμμές
+        for i in range(min(5, len(df))):
+            for j in range(len(df.columns)):
+                val = str(df.iloc[i, j]).strip()
+                if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "πληρωτ" in val.lower() and not "ποσοτ" in val.lower() and not "αξια" in val.lower() and not "κοστος" in val.lower():
+                    custom_title = val
+                    break
+            if custom_title != "ΕΙΔΟΣ":
                 break
 
-        df = df.iloc[:, [0, 1]]
+        # Εντοπισμός γραμμής κεφαλίδων (Κατάστημα, Ποσότητες)
+        header_row_idx = 0
+        for i in range(min(5, len(df))):
+            row_str = str(df.iloc[i].values).lower()
+            if "κατάστημα" in row_str or "καταστημα" in row_str:
+                header_row_idx = i
+                break
+
+        # Ορισμός κεφαλίδων και καθαρισμός δεδομένων κάτω από την κεφαλίδα
+        df.columns = df.iloc[header_row_idx]
+        df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
+
+        # Εύρεση σωστής στήλης καταστήματος και ποσότητας δυναμικά
+        col_kat = None
+        col_pos = None
+        for col in df.columns:
+            col_str = str(col).lower()
+            if "κατάστημα" in col_str or "καταστημα" in col_str:
+                col_kat = col
+            elif "ποσοτ" in col_str:
+                col_pos = col
+
+        # Fallback αν δεν βρεθούν με ακρίβεια οι επικεφαλίδες
+        if col_kat is None:
+            col_kat = df.columns[0]
+        if col_pos is None:
+            col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
+
+        df = df[[col_kat, col_pos]].copy()
         df.columns = ['Κατάστημα', 'Ποσότητα']
         
         df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
         df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
         
-        df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ", case=False, na=False)]
+        df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
         
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Ποσότητα'], errors='coerce').fillna(0).astype(int)
+        # Καθαρισμός αριθμών (μετατροπή σε integer ασχέτως αν έχουν τελείες ή κόμματα)
+        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
+        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
         total_sum = df_clean['Num_Sales'].sum()
         
