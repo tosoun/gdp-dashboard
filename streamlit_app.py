@@ -366,8 +366,10 @@ try:
                         document.addEventListener("DOMContentLoaded", function() {
                             const audio = document.getElementById('cheerAudio');
                             if(audio) {
+                                audio.volume = 0.5;
                                 audio.play().catch(function(error) {
                                     const playOnTouch = function() {
+                                        audio.volume = 0.5;
                                         audio.play();
                                         document.removeEventListener('click', playOnTouch);
                                         document.removeEventListener('touchstart', playOnTouch);
