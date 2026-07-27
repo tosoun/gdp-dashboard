@@ -107,7 +107,6 @@ try:
         text-align: center; 
     }}
     
-    /* --- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΑΡΙΣΤΕΡΑ, ΚΑΘΕΤΑ --- */
     .top-left-area {{
         position: absolute;
         top: 15px;
@@ -123,7 +122,6 @@ try:
         text-transform: uppercase;
         margin-top: 2px;
     }}
-    --------------------------------------------
 
     .pro-title {{
         font-family: 'Montserrat', sans-serif;
@@ -138,11 +136,11 @@ try:
     
     .tv-big {{ 
         font-family: 'Montserrat', sans-serif;
-        color: #3498db; 
-        font-size: 34px; 
+        color: #ffffff; 
+        font-size: 30px; 
         font-weight: 800; 
         margin-bottom: 20px; 
-        letter-spacing: 3px; 
+        letter-spacing: 2px; 
         text-transform: uppercase;
     }}
 
@@ -177,7 +175,6 @@ try:
     </style>
     
     <div class="main-container">
-        <!-- LOGO ΚΑΙ ΤΟΜΕΑΣ 3 ΑΡΙΣΤΕΡΑ -->
         <div class="top-left-area">
             <img src="https://raw.githubusercontent.com/tosoun/gdp-dashboard/main/unnamed-removebg-preview.png" alt="Logo" style="max-width: 55px; height: auto; display: block;">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
