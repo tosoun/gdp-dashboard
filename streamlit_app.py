@@ -24,13 +24,21 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
+        
+        # Επιλογή ώρας χειροκίνητα για να είσαι 100% σίγουρος
+        default_now = datetime.datetime.now().time()
+        selected_time = st.time_input("Επιλέξτε την τρέχουσα τοπική ώρα:", value=default_now)
+        
         if uploaded_file is not None:
             with open(excel_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             
-            # Ρύθμιση ώρας: Εδώ αφαιρούμε 3 ώρες συνολικά (UTC σε EEST + 1 ώρα πίσω για τη μέτρηση)
-            # Αν θες άλλη διαφορά, πειράζεις το numbers στο hours=...
-            current_time_str = (datetime.datetime.utcnow() - datetime.timedelta(hours=3)).strftime("%H:%M")
+            # Υπολογισμός: Επιλεγμένη ώρα μείον 1 ώρα
+            today_date = datetime.date.today()
+            full_dt = datetime.datetime.combine(today_date, selected_time)
+            adjusted_dt = full_dt - datetime.timedelta(hours=1)
+            
+            current_time_str = adjusted_dt.strftime("%H:%M")
             with open(time_path, "w") as tf:
                 tf.write(current_time_str)
 
