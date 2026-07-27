@@ -14,6 +14,11 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
+    
+    /* Λευκά γράμματα για τα labels στις επιλογές του admin */
+    div[data-baseweb="select"] > div, .stRadio label p {
+        color: white !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -62,7 +67,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             st.session_state.selected_half_hour = selected_time
 
         with col_confetti:
-            confetti_choice = st.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1)
+            confetti_choice = st.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1, horizontal=True)
 
         # Αυτόματη αποθήκευση μόλις ανέβει το αρχείο
         if uploaded_file is not None:
