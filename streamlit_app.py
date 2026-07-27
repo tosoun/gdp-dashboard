@@ -294,7 +294,7 @@ try:
         </div>
     """
     
-    html_content += f'<div class="pro-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="pro-title">SALES</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
