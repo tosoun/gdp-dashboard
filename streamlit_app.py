@@ -46,13 +46,13 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# Υπολογισμός ώρας τελευταίας τροποποίησης του αρχείου Excel (μείον 1 ώρα)
+# Υπολογισμός ώρας τελευταίας τροποποίησης με διόρθωση ζώνης ώρας (Ελλάδα UTC+3)
 file_time_str = "--:--"
 if os.path.exists(excel_path):
     try:
         mod_time = os.path.getmtime(excel_path)
-        # Μετατροπή σε datetime και αφαίρεση 1 ώρας
-        dt = datetime.datetime.fromtimestamp(mod_time) - datetime.timedelta(hours=1)
+        # Προσθήκη 3 ωρών για να ταιριάζει με την ώρα Ελλάδος
+        dt = datetime.datetime.fromtimestamp(mod_time) + datetime.timedelta(hours=3)
         file_time_str = dt.strftime("%H:%M")
     except Exception:
         pass
