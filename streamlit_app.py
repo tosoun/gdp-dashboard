@@ -83,8 +83,8 @@ try:
 
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <!-- ΕΙΣΑΓΩΓΗ ΚΑΛΛΙΓΡΑΦΙΚΗΣ ΓΡΑΜΜΑΤΟΣΕΙΡΑΣ (Dancing Script) ΑΠΟ GOOGLE FONTS -->
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <!-- ΕΙΣΑΓΩΓΗ ΕΠΑΓΓΕΛΜΑΤΙΚΗΣ ΚΑΙ ΚΟΜΨΗΣ ΓΡΑΜΜΑΤΟΣΕΙΡΑΣ (Montserrat) ΑΠΟ GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
     @keyframes blink-number-slow {{
@@ -93,7 +93,7 @@ try:
         100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
     }}
 
-    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 10px; background: transparent; }}
+    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 10px; background: transparent; }}
     
     .main-container {{ 
         position: relative;
@@ -118,44 +118,46 @@ try:
     .top-right-text {{
         color: #3498db;
         font-size: 15px;
-        font-weight: bold;
-        letter-spacing: 1px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
         text-transform: uppercase;
     }}
 
-    /* --- ΚΑΛΛΙΓΡΑΦΙΚΗ ΓΡΑΜΜΑΤΟΣΕΙΡΑ ΓΙΑ ΤΟ ΠΩΛΗΣΕΙΣ TV --- */
-    .calligraphy-title {{
-        font-family: 'Dancing Script', cursive;
-        color: white;
-        font-size: 44px;
-        font-weight: bold;
-        margin-bottom: 5px;
+    /* --- ΕΠΑΓΓΕΛΜΑΤΙΚΟ ΣΤΥΛ ΓΙΑ ΤΟ ΠΩΛΗΣΕΙΣ TV --- */
+    .pro-title {{
+        font-family: 'Montserrat', sans-serif;
+        color: #ffffff;
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 2px;
         margin-top: 5px;
-        letter-spacing: 1px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }}
     
     .tv-big {{ 
-        font-family: 'Dancing Script', cursive;
+        font-family: 'Montserrat', sans-serif;
         color: #3498db; 
-        font-size: 48px; 
-        font-weight: bold; 
-        margin-bottom: 25px; 
-        letter-spacing: 2px; 
+        font-size: 34px; 
+        font-weight: 800; 
+        margin-bottom: 20px; 
+        letter-spacing: 3px; 
+        text-transform: uppercase;
     }}
-    /* -------------------------------------------------- */
+    /* --------------------------------------------- */
 
-    .sub-title {{ color: #3498db; font-size: 16px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }}
+    .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
     
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
     
-    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 500; margin-bottom: 8px; gap: 10px; }}
+    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
     .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
     .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
     
     .win-number-first {{
         color: #2ecc71;
         animation: blink-number-slow 2.5s infinite ease-in-out;
-        font-weight: bold;
+        font-weight: 700;
     }}
 
     .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
@@ -183,7 +185,7 @@ try:
         </div>
     """
     
-    html_content += f'<div class="calligraphy-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="pro-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
