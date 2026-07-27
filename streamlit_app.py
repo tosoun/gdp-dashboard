@@ -141,7 +141,7 @@ try:
         <div class="top-right-text">ΤΟΜΕΑΣ 3</div>
     """
     
-    html_content += f'<div class="main-title">Ροή Πωλήσεων</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="main-title">ΠΩΛΗΣΕΙΣ</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
