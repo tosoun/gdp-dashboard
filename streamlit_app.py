@@ -241,16 +241,6 @@ try:
         letter-spacing: 2px;
         text-transform: uppercase;
     }}
-    
-    .tv-big {{ 
-        font-family: 'Montserrat', sans-serif;
-        color: #ffffff; 
-        font-size: 30px; 
-        font-weight: 800; 
-        margin-bottom: 20px; 
-        letter-spacing: 2px; 
-        text-transform: uppercase;
-    }}
 
     .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
     
@@ -295,7 +285,7 @@ try:
             </div>
     """
     
-    html_content += f'<div class="pro-title">SALES</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="pro-title">SALES</div><div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
