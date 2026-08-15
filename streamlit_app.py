@@ -20,69 +20,158 @@ time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
 
-# Φόρτωση ρυθμίσεων
 confetti_enabled = True
 if os.path.exists(confetti_path):
     try:
-        with open(confetti_path, "r", encoding="utf-8") as cf: confetti_enabled = cf.read().strip() == "True"
-    except Exception: pass
+        with open(confetti_path, "r", encoding="utf-8") as cf:
+            confetti_enabled = cf.read().strip() == "True"
+    except Exception:
+        pass
 
 cheer_enabled = True
 if os.path.exists(cheer_path):
     try:
-        with open(cheer_path, "r", encoding="utf-8") as ch: cheer_enabled = ch.read().strip() == "True"
-    except Exception: pass
+        with open(cheer_path, "r", encoding="utf-8") as ch:
+            cheer_enabled = ch.read().strip() == "True"
+    except Exception:
+        pass
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        uploaded_file = st.file_uploader("Επιλέξτε το 'tv sat sales.xlsx':", type=["xlsx"])
-        time_options = [datetime.time(h, m) for h in range(24) for m in (0, 30)]
-        default_time = datetime.time(datetime.datetime.now().hour, 0)
-        selected_time = st.selectbox("Ώρα αναφοράς:", options=time_options, format_func=lambda x: x.strftime("%H:%M"))
-        col_confetti, col_cheer = st.columns(2)
-        confetti_choice = col_confetti.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1, horizontal=True)
-        cheer_choice = col_cheer.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
+        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
+        time_options = []
+        for hour in range(24):
+            for minute in (0, 30):
+                time_options.append(datetime.time(hour, minute))
+        
+        now = datetime.datetime.now() - datetime.timedelta(hours=1)
+        default_minute = 0 if now.minute < 30 else 30
+        default_time = datetime.time(now.hour, default_minute)
+        
+        if 'selected_half_hour' not in st.session_state:
+            st.session_state.selected_half_hour = default_time
+
+        col_time, col_confetti, col_cheer = st.columns([1.2, 1, 1])
+        
+        with col_time:
+            selected_time = st.selectbox(
+                "Ώρα αναφοράς:",
+                options=time_options,
+                index=time_options.index(st.session_state.selected_half_hour) if st.session_state.selected_half_hour in time_options else 0,
+                format_func=lambda x: x.strftime("%H:%M")
+            )
+            st.session_state.selected_half_hour = selected_time
+
+        with col_confetti:
+            confetti_choice = st.radio("Κομφετί:", ["ΝΑΙ", "ΟΧΙ"], index=0 if confetti_enabled else 1, horizontal=True)
+
+        with col_cheer:
+            cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
+
         if uploaded_file is not None:
-            with open(excel_path, "wb") as f: f.write(uploaded_file.getbuffer())
-            with open(time_path, "w", encoding="utf-8") as tf: tf.write(selected_time.strftime("%H:%M"))
-            with open(confetti_path, "w", encoding="utf-8") as cf: cf.write(str(confetti_choice == "ΝΑΙ"))
-            with open(cheer_path, "w", encoding="utf-8") as ch: ch.write(str(cheer_choice == "ΝΑΙ"))
-            st.success("Αποθηκεύτηκαν! Γίνεται ανανέωση..."); st.rerun()
-    elif password: st.error("Λάθος κωδικός!")
+            with open(excel_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+        
+            current_time_str = selected_time.strftime("%H:%M")
+            with open(time_path, "w", encoding="utf-8") as tf:
+                tf.write(current_time_str)
+
+            with open(confetti_path, "w", encoding="utf-8") as cf:
+                cf.write(str(confetti_choice == "ΝΑΙ"))
+
+            with open(cheer_path, "w", encoding="utf-8") as ch:
+                ch.write(str(cheer_choice == "ΝΑΙ"))
+
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
+            components.html("""
+                <script>
+                    setTimeout(function() {
+                        window.parent.location.reload();
+                    }, 1000);
+                </script>
+            """, height=0)
+    elif password:
+        st.error("Λάθος κωδικός!")
 
 def load_data():
-    return pd.read_excel(excel_path, header=None) if os.path.exists(excel_path) else pd.DataFrame()
+    if os.path.exists(excel_path):
+        try:
+            df = pd.read_excel(excel_path, header=None)
+            return df
+        except Exception as e:
+            return pd.DataFrame()
+    return pd.DataFrame()
 
 file_time_str = "--:--"
 if os.path.exists(time_path):
     try:
-        with open(time_path, "r", encoding="utf-8") as tf: file_time_str = tf.read().strip()
-    except Exception: pass
+        with open(time_path, "r", encoding="utf-8") as tf:
+            file_time_str = tf.read().strip()
+    except Exception:
+        pass
 
 try:
     df = load_data()
+    
     custom_title = "ΕΙΔΟΣ"
+    
     if not df.empty:
         for i in range(min(5, len(df))):
             for j in range(len(df.columns)):
                 val = str(df.iloc[i, j]).strip()
-                if val and val.lower() not in ['nan', 'κατάστημα', 'ποσοτητα', 'αξια', 'κοστος']:
-                    custom_title = val; break
-            if custom_title != "ΕΙΔΟΣ": break
-        
+                if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "πληρωτ" in val.lower() and not "ποσοτ" in val.lower() and not "αξια" in val.lower() and not "κοστος" in val.lower():
+                    custom_title = val
+                    break
+            if custom_title != "ΕΙΔΟΣ":
+                break
+
         header_row_idx = 0
         for i in range(min(5, len(df))):
-            if "κατάστημα" in str(df.iloc[i].values).lower(): header_row_idx = i; break
-        
+            row_str = str(df.iloc[i].values).lower()
+            if "κατάστημα" in row_str or "καταστημα" in row_str:
+                header_row_idx = i
+                break
+
         df.columns = df.iloc[header_row_idx]
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
-        df = df.dropna(subset=[df.columns[0], df.columns[1]])
-        df['Κατάστημα'] = df[df.columns[0]].astype(str).str.strip()
-        df['Num_Sales'] = pd.to_numeric(df[df.columns[1]].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False), errors='coerce').fillna(0).astype(int)
-        df_stores = df[~df['Κατάστημα'].str.contains("Total|Συνολο", case=False, na=False)].sort_values(by='Num_Sales', ascending=False)
-        total_sum = df_stores['Num_Sales'].sum()
+
+        col_kat = None
+        col_pos = None
+        for col in df.columns:
+            col_str = str(col).lower()
+            if "κατάστημα" in col_str or "καταστημα" in col_str:
+                col_kat = col
+            elif "ποσοτ" in col_str:
+                col_pos = col
+
+        if col_kat is None:
+            col_kat = df.columns[0]
+        if col_pos is None:
+            col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
+
+        df = df[[col_kat, col_pos]].copy()
+        df.columns = ['Κατάστημα', 'Ποσότητα']
+        
+        df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
+        df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
+        
+        df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
+        
+        df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
+        
+        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
+        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
+        
+        total_sum = df_clean['Num_Sales'].sum()
+        
+        df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
+        
+        total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
+        
+        df = pd.concat([df_stores, total_row], ignore_index=True)
+        
         max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
     else:
         max_sales = 1
@@ -95,37 +184,219 @@ try:
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-    @keyframes blink-number-slow {{ 0%, 100% {{ opacity: 1; color: #2ecc71; }} 50% {{ opacity: 0.3; }} }}
-    .main-container {{ position: relative; background: rgba(0, 0, 0, 0.6); padding: 0; border-radius: 15px; backdrop-filter: blur(8px); max-width: 450px; margin: auto; text-align: center; overflow: hidden; }}
-    .banner-img {{ width: 100%; height: 130px; object-fit: cover; display: block; }}
+    @keyframes blink-number-slow {{
+        0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+        50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
+        100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+    }}
+
+    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 10px; background: transparent; }}
+    
+    .main-container {{ 
+        position: relative;
+        background: rgba(0, 0, 0, 0.6); 
+        padding: 0; 
+        border-radius: 15px; 
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
+        backdrop-filter: blur(8px); 
+        -webkit-backdrop-filter: blur(8px); 
+        max-width: 450px; 
+        margin: auto; 
+        text-align: center; 
+        overflow: hidden;
+    }}
+    
+    .banner-img {{ width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 15px 15px 0 0; }}
     .content-wrapper {{ padding: 25px; }}
-    .top-left-area {{ text-align: left; margin-bottom: 15px; }}
-    .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; text-transform: uppercase; }}
-    .pro-title {{ color: #ffffff; font-size: 30px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }}
-    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px; border-radius: 12px; margin-bottom: 10px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
+    
+    .top-left-area {{
+        text-align: left;
+        margin-bottom: 15px;
+    }}
+
+    .top-left-text {{
+        color: #3498db;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }}
+
+    .top-left-time {{
+        color: #7f8c8d;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }}
+
+    .pro-title {{
+        font-family: 'Montserrat', sans-serif;
+        color: #ffffff;
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 2px;
+        margin-top: 5px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }}
+    
+    .tv-big {{ 
+        font-family: 'Montserrat', sans-serif;
+        color: #ffffff; 
+        font-size: 30px; 
+        font-weight: 800; 
+        margin-bottom: 20px; 
+        letter-spacing: 2px; 
+        text-transform: uppercase;
+    }}
+
+    .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
+    
+    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
+    
+    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
+    .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
+    .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
+    
+    .win-number-first {{
+        color: #2ecc71;
+        animation: blink-number-slow 2.5s infinite ease-in-out;
+        font-weight: 700;
+    }}
+
+    .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
+    .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
+    .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
+    
+    .watermark {{
+        text-align: right;
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 10px;
+        letter-spacing: 1px;
+        margin-top: 15px;
+        margin-right: 5px;
+        text-transform: uppercase;
+        user-select: none;
+    }}
     </style>
+    
     <div class="main-container">
         <img src="{img_src}" class="banner-img" alt="banner">
         <div class="content-wrapper">
-            <audio id="cheerAudio" preload="auto"><source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg"></audio>
+            <audio id="cheerAudio" preload="auto">
+                <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+            </audio>
+
             <div class="top-left-area">
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
-                <div style="color: #7f8c8d; font-size: 10px;">εως: {file_time_str}</div>
+                <div class="top-left-time">εως: {file_time_str}</div>
             </div>
-            <div class="pro-title">SALES TV</div>
-            <div style="color: #3498db; font-size: 15px; margin-bottom: 15px;">{custom_title}</div>
     """
     
-    if not df.empty:
-        for index, row in df_stores.iterrows():
-            bar_width = round((row['Num_Sales'] / max_sales) * 100)
-            is_first = "id='first-store-card'" if index == df_stores.index[0] else ""
-            num_class = "class='win-number-first'" if index == df_stores.index[0] else ""
-            html_content += f'<div class="poll-item" {is_first}><div style="display:flex; justify-content:space-between; color:white;"><b>{row["Κατάστημα"]}</b><b {num_class}>{row["Num_Sales"]}</b></div><div style="background:rgba(255,255,255,0.1); height:10px; border-radius:5px; margin-top:5px;"><div style="background:#3498db; height:100%; width:{bar_width}%; border-radius:5px;"></div></div></div>'
-        html_content += f'<div class="poll-item" style="border:1px solid #3498db;"><b>ΣΥΝΟΛΟ: {total_sum}</b></div>'
+    html_content += f'<div class="pro-title">SALES</div><div class="tv-big">TV</div><div class="sub-title">{custom_title}</div>'
     
+    if not df.empty:
+        for index, row in df.iterrows():
+            katastima = str(row['Κατάστημα'])
+            if katastima.lower() == 'nan' or not katastima.strip():
+                continue
+            num = int(row['Num_Sales'])
+            formatted_num = f"{num:,}".replace(',', '.')
+            bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
+            if bar_width > 100: bar_width = 100
+            
+            is_tot_row = "total" in katastima.lower() or "σύνολο" in katastima.lower()
+            
+            if is_tot_row:
+                html_content += f"""
+                <div class="poll-item total-item">
+                    <div class="poll-info">
+                        <span><b>{katastima}</b></span>
+                        <span><b>{formatted_num} τμχ/κιλ</b></span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+            elif index == 0:
+                html_content += f"""
+                <div class="poll-item" id="first-store-card">
+                    <div class="poll-info">
+                        <span><b>{katastima}</b></span>
+                        <span class="win-number-first">{formatted_num} τμχ/κιλ</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+                
+                if confetti_enabled:
+                    html_content += f"""
+                    <script>
+                        setTimeout(function() {{
+                            const card = document.getElementById('first-store-card');
+                            if(card) {{
+                                const rect = card.getBoundingClientRect();
+                                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                                
+                                const triggerConfetti = () => {{
+                                    confetti({{
+                                        particleCount: 100,
+                                        spread: 80,
+                                        origin: {{ x: x, y: y }}
+                                    }});
+                                }};
+
+                                triggerConfetti();
+                                setTimeout(triggerConfetti, 3000);
+                            }}
+                        }}, 300);
+                    </script>
+                    """
+                
+                if cheer_enabled:
+                    html_content += """
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const audio = document.getElementById('cheerAudio');
+                            if(audio) {
+                                audio.volume = 0.5;
+                                audio.play().catch(function(error) {
+                                    const playOnTouch = function() {
+                                        audio.volume = 0.5;
+                                        audio.play();
+                                        document.removeEventListener('click', playOnTouch);
+                                        document.removeEventListener('touchstart', playOnTouch);
+                                    };
+                                    document.addEventListener('click', playOnTouch);
+                                    document.addEventListener('touchstart', playOnTouch);
+                                });
+                            }
+                        });
+                    </script>
+                    """
+            else:
+                html_content += f"""
+                <div class="poll-item">
+                    <div class="poll-info">
+                        <span><b>{katastima}</b></span>
+                        <span><b>{formatted_num} τμχ/κιλ</b></span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+    else:
+        html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
+    
+    html_content += '<div class="watermark">tosoun 2026</div>'
     html_content += '</div></div>'
-    components.html(html_content, height=1200)
+    components.html(html_content, height=1050, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
