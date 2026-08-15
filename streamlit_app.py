@@ -7,15 +7,6 @@ import base64
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
-# Συνάρτηση για να φέρει το banner
-def get_image_as_base64(path):
-    if os.path.exists(path):
-        with open(path, "rb") as image_file:
-            return f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
-    return ""
-
-img_src = get_image_as_base64("spamebanner.jpg")
-
 st.markdown("""
     <style>
     .stApp { background-color: #2c3e50 !important; }
@@ -74,7 +65,6 @@ try:
     df = load_data()
     custom_title = "ΕΙΔΟΣ"
     if not df.empty:
-        # Επεξεργασία δεδομένων όπως την είχες
         for i in range(min(5, len(df))):
             for j in range(len(df.columns)):
                 val = str(df.iloc[i, j]).strip()
@@ -88,45 +78,51 @@ try:
         
         df.columns = df.iloc[header_row_idx]
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
-        
         df = df.dropna(subset=[df.columns[0], df.columns[1]])
         df['Κατάστημα'] = df[df.columns[0]].astype(str).str.strip()
         df['Num_Sales'] = pd.to_numeric(df[df.columns[1]].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False), errors='coerce').fillna(0).astype(int)
-        
         df_stores = df[~df['Κατάστημα'].str.contains("Total|Συνολο", case=False, na=False)].sort_values(by='Num_Sales', ascending=False)
         total_sum = df_stores['Num_Sales'].sum()
         max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
     else:
         max_sales = 1
 
-    # Εδώ είναι το HTML που διατηρεί τη δομή σου
+    img_src = ""
+    if os.path.exists("spamebanner.jpg"):
+        with open("spamebanner.jpg", "rb") as image_file:
+            img_src = f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
+
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
+    @keyframes blink-number-slow {{ 0%, 100% {{ opacity: 1; color: #2ecc71; }} 50% {{ opacity: 0.3; }} }}
     .main-container {{ position: relative; background: rgba(0, 0, 0, 0.6); padding: 0; border-radius: 15px; backdrop-filter: blur(8px); max-width: 450px; margin: auto; text-align: center; overflow: hidden; }}
-    .banner-image {{ width: 100%; height: 130px; object-fit: cover; display: block; }}
-    .info-box {{ padding: 25px; }}
-    .top-left-area {{ text-align: left; margin-bottom: 10px; }}
+    .banner-img {{ width: 100%; height: 130px; object-fit: cover; display: block; }}
+    .content-wrapper {{ padding: 25px; }}
+    .top-left-area {{ text-align: left; margin-bottom: 15px; }}
     .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; text-transform: uppercase; }}
-    .pro-title {{ color: #ffffff; font-size: 30px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; }}
+    .pro-title {{ color: #ffffff; font-size: 30px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }}
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px; border-radius: 12px; margin-bottom: 10px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
     </style>
     <div class="main-container">
-        <img src="{img_src}" class="banner-image" alt="banner">
-        <div class="info-box">
+        <img src="{img_src}" class="banner-img" alt="banner">
+        <div class="content-wrapper">
+            <audio id="cheerAudio" preload="auto"><source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg"></audio>
             <div class="top-left-area">
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
                 <div style="color: #7f8c8d; font-size: 10px;">εως: {file_time_str}</div>
             </div>
             <div class="pro-title">SALES TV</div>
-            <div style="color: #3498db; font-size: 15px; margin-bottom: 10px;">{custom_title}</div>
+            <div style="color: #3498db; font-size: 15px; margin-bottom: 15px;">{custom_title}</div>
     """
     
-    # Προσθήκη σειρών
     if not df.empty:
         for index, row in df_stores.iterrows():
             bar_width = round((row['Num_Sales'] / max_sales) * 100)
-            html_content += f'<div class="poll-item"><div style="display:flex; justify-content:space-between; color:white;"><b>{row["Κατάστημα"]}</b><b>{row["Num_Sales"]}</b></div><div style="background:rgba(255,255,255,0.1); height:10px; border-radius:5px; margin-top:5px;"><div style="background:#3498db; height:100%; width:{bar_width}%; border-radius:5px;"></div></div></div>'
+            is_first = "id='first-store-card'" if index == df_stores.index[0] else ""
+            num_class = "class='win-number-first'" if index == df_stores.index[0] else ""
+            html_content += f'<div class="poll-item" {is_first}><div style="display:flex; justify-content:space-between; color:white;"><b>{row["Κατάστημα"]}</b><b {num_class}>{row["Num_Sales"]}</b></div><div style="background:rgba(255,255,255,0.1); height:10px; border-radius:5px; margin-top:5px;"><div style="background:#3498db; height:100%; width:{bar_width}%; border-radius:5px;"></div></div></div>'
         html_content += f'<div class="poll-item" style="border:1px solid #3498db;"><b>ΣΥΝΟΛΟ: {total_sum}</b></div>'
     
     html_content += '</div></div>'
