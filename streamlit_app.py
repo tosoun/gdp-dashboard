@@ -3,8 +3,18 @@ import pandas as pd
 import os
 import datetime
 import streamlit.components.v1 as components
+import base64
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
+
+# Συνάρτηση για μετατροπή εικόνας σε base64
+def get_image_as_base64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as image_file:
+            return f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
+    return ""
+
+img_src = get_image_as_base64("spamebanner.jpg")
 
 st.markdown("""
     <style>
@@ -120,7 +130,6 @@ if os.path.exists(time_path):
 
 try:
     df = load_data()
-    
     custom_title = "ΕΙΔΟΣ"
     
     if not df.empty:
@@ -143,8 +152,7 @@ try:
         df.columns = df.iloc[header_row_idx]
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
 
-        col_kat = None
-        col_pos = None
+        col_kat, col_pos = None, None
         for col in df.columns:
             col_str = str(col).lower()
             if "κατάστημα" in col_str or "καταστημα" in col_str:
@@ -152,32 +160,22 @@ try:
             elif "ποσοτ" in col_str:
                 col_pos = col
 
-        if col_kat is None:
-            col_kat = df.columns[0]
-        if col_pos is None:
-            col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
+        if col_kat is None: col_kat = df.columns[0]
+        if col_pos is None: col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
 
         df = df[[col_kat, col_pos]].copy()
         df.columns = ['Κατάστημα', 'Ποσότητα']
-        
         df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
         df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
-        
         df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
-        
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
-        
         df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
         df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
         total_sum = df_clean['Num_Sales'].sum()
-        
         df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
-        
         total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
-        
         df = pd.concat([df_stores, total_row], ignore_index=True)
-        
         max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
     else:
         max_sales = 1
@@ -185,109 +183,28 @@ try:
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-    @keyframes blink-number-slow {{
-        0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
-        50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
-        100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
-    }}
-
+    @keyframes blink-number-slow {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.25; }} 100% {{ opacity: 1; }} }}
     body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 10px; background: transparent; }}
-    
-    .main-container {{ 
-        position: relative;
-        background: rgba(0, 0, 0, 0.6); 
-        padding: 25px; 
-        border-radius: 15px; 
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
-        backdrop-filter: blur(8px); 
-        -webkit-backdrop-filter: blur(8px); 
-        max-width: 450px; 
-        margin: auto; 
-        text-align: center; 
-    }}
-    
-    .top-left-area {{
-        position: absolute;
-        top: 15px;
-        left: 20px;
-        text-align: left;
-    }}
-
-    .top-left-text {{
-        color: #3498db;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        margin-top: 2px;
-    }}
-
-    .top-left-time {{
-        color: #7f8c8d;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        margin-top: 1px;
-    }}
-
-    .pro-title {{
-        font-family: 'Montserrat', sans-serif;
-        color: #ffffff;
-        font-size: 30px;
-        font-weight: 800;
-        margin-bottom: 2px;
-        margin-top: 5px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }}
-    
-    .tv-big {{ 
-        font-family: 'Montserrat', sans-serif;
-        color: #ffffff; 
-        font-size: 30px; 
-        font-weight: 800; 
-        margin-bottom: 20px; 
-        letter-spacing: 2px; 
-        text-transform: uppercase;
-    }}
-
+    .main-container {{ position: relative; background: rgba(0, 0, 0, 0.6); padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); max-width: 450px; margin: auto; text-align: center; }}
+    .corner-logo {{ position: absolute; top: 15px; right: 15px; width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }}
+    .top-left-area {{ position: absolute; top: 15px; left: 20px; text-align: left; }}
+    .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }}
+    .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }}
+    .pro-title {{ color: #ffffff; font-size: 30px; font-weight: 800; margin-top: 5px; letter-spacing: 2px; text-transform: uppercase; }}
+    .tv-big {{ color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; }}
     .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
-    
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
-    
-    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
-    .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
-    .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
-    
-    .win-number-first {{
-        color: #2ecc71;
-        animation: blink-number-slow 2.5s infinite ease-in-out;
-        font-weight: 700;
-    }}
-
-    .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
+    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; gap: 10px; }}
+    .win-number-first {{ color: #2ecc71; animation: blink-number-slow 2.5s infinite; font-weight: 700; }}
+    .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; margin-top: 8px; }}
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
-    
-    .watermark {{
-        text-align: right;
-        color: rgba(255, 255, 255, 0.2);
-        font-size: 10px;
-        letter-spacing: 1px;
-        margin-top: 15px;
-        margin-right: 5px;
-        text-transform: uppercase;
-        user-select: none;
-    }}
+    .watermark {{ text-align: right; color: rgba(255, 255, 255, 0.2); font-size: 10px; margin-top: 15px; text-transform: uppercase; }}
     </style>
-    
     <div class="main-container">
-        <audio id="cheerAudio" preload="auto">
-            <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
-        </audio>
-
+        <img src="{img_src}" class="corner-logo" alt="logo">
+        <audio id="cheerAudio" preload="auto"><source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg"></audio>
         <div class="top-left-area">
             <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
             <div class="top-left-time">εως: {file_time_str}</div>
@@ -299,103 +216,22 @@ try:
     if not df.empty:
         for index, row in df.iterrows():
             katastima = str(row['Κατάστημα'])
-            if katastima.lower() == 'nan' or not katastima.strip():
-                continue
             num = int(row['Num_Sales'])
             formatted_num = f"{num:,}".replace(',', '.')
             bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
-            if bar_width > 100: bar_width = 100
             
-            is_tot_row = "total" in katastima.lower() or "σύνολο" in katastima.lower()
-            
-            if is_tot_row:
-                html_content += f"""
-                <div class="poll-item total-item">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span><b>{formatted_num} τμχ/κιλ</b></span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
+            if "total" in katastima.lower() or "σύνολο" in katastima.lower():
+                html_content += f'<div class="poll-item total-item"><div class="poll-info"><span><b>{katastima}</b></span><span><b>{formatted_num}</b></span></div><div class="progress-bar-bg"><div class="progress-fill" style="width: {bar_width}%;"></div></div></div>'
             elif index == 0:
-                html_content += f"""
-                <div class="poll-item" id="first-store-card">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span class="win-number-first">{formatted_num} τμχ/κιλ</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
-                
+                html_content += f'<div class="poll-item" id="first-store-card"><div class="poll-info"><span><b>{katastima}</b></span><span class="win-number-first">{formatted_num}</span></div><div class="progress-bar-bg"><div class="progress-fill" style="width: {bar_width}%;"></div></div></div>'
                 if confetti_enabled:
-                    html_content += f"""
-                    <script>
-                        setTimeout(function() {{
-                            const card = document.getElementById('first-store-card');
-                            if(card) {{
-                                const rect = card.getBoundingClientRect();
-                                const x = (rect.left + rect.width / 2) / window.innerWidth;
-                                const y = (rect.top + rect.height / 2) / window.innerHeight;
-                                
-                                const triggerConfetti = () => {{
-                                    confetti({{
-                                        particleCount: 100,
-                                        spread: 80,
-                                        origin: {{ x: x, y: y }}
-                                    }});
-                                }};
-
-                                triggerConfetti();
-                                setTimeout(triggerConfetti, 3000);
-                            }}
-                        }}, 300);
-                    </script>
-                    """
-                
+                    html_content += '<script>setTimeout(() => { confetti({particleCount: 100, spread: 80, origin: {y: 0.6}}); }, 300);</script>'
                 if cheer_enabled:
-                    html_content += """
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const audio = document.getElementById('cheerAudio');
-                            if(audio) {
-                                audio.volume = 0.5;
-                                audio.play().catch(function(error) {
-                                    const playOnTouch = function() {
-                                        audio.volume = 0.5;
-                                        audio.play();
-                                        document.removeEventListener('click', playOnTouch);
-                                        document.removeEventListener('touchstart', playOnTouch);
-                                    };
-                                    document.addEventListener('click', playOnTouch);
-                                    document.addEventListener('touchstart', playOnTouch);
-                                });
-                            }
-                        });
-                    </script>
-                    """
+                    html_content += '<script>document.getElementById("cheerAudio").play().catch(()=>{});</script>'
             else:
-                html_content += f"""
-                <div class="poll-item">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span><b>{formatted_num} τμχ/κιλ</b></span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
-    else:
-        html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
+                html_content += f'<div class="poll-item"><div class="poll-info"><span><b>{katastima}</b></span><span><b>{formatted_num}</b></span></div><div class="progress-bar-bg"><div class="progress-fill" style="width: {bar_width}%;"></div></div></div>'
     
-    html_content += '<div class="watermark">tosoun 2026</div>'
-    html_content += '</div>'
+    html_content += '<div class="watermark">tosoun 2026</div></div>'
     components.html(html_content, height=1050, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
