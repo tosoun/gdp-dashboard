@@ -215,8 +215,7 @@ try:
     
     .banner-img {{ 
         width: 100%; 
-        height: 100px; 
-        object-fit: cover; 
+        height: auto; 
         display: block; 
         border-radius: 0; 
         margin: 0; 
