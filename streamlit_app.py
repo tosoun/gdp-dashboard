@@ -16,12 +16,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Ορισμός απόλυτης διαδρομής για να μην χάνονται τα αρχεία ανάλογα με το πού τρέχει το script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals() else "."
 excel_path = os.path.join(BASE_DIR, "tv sat sales.xlsx")
 time_path = os.path.join(BASE_DIR, "upload_time.txt")
 confetti_path = os.path.join(BASE_DIR, "confetti_status.txt")
 cheer_path = os.path.join(BASE_DIR, "cheer_status.txt")
+
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = True
+    st.session_state.show_wakeup_warning = True
 
 confetti_enabled = True
 if os.path.exists(confetti_path):
@@ -40,6 +43,9 @@ if os.path.exists(cheer_path):
         pass
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
+    if st.session_state.get('show_wakeup_warning', False):
+        st.warning("⚠️ Ανανεωνεται καθε Σαββατο")
+    
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
@@ -87,7 +93,9 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!")
+            st.session_state.show_wakeup_warning = False
+
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς! Γίνεται ανανέωση...")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -101,8 +109,6 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 def load_data():
     if os.path.exists(excel_path):
         try:
-            # Χρήση του mtime (χρόνος τελευταίας τροποποίησης) για αποφυγήCaching παλαιών δεδομένων
-            file_mtime = os.path.getmtime(excel_path)
             df = pd.read_excel(excel_path, header=None)
             return df
         except Exception as e:
