@@ -21,7 +21,6 @@ excel_path = "tv sat sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
-banner_filename = "ChatGPT Image 17 Αυγ 2026, 11_15_22 π.μ._3.png"
 
 confetti_enabled = True
 if os.path.exists(confetti_path):
@@ -180,14 +179,10 @@ try:
         max_sales = 1
 
     img_src = ""
-    actual_banner = banner_filename if os.path.exists(banner_filename) else ""
-    if not actual_banner:
-        banner_files = glob.glob("ChatGPT Image*.png") + glob.glob("*banner*.jpg") + glob.glob("*banner*.png")
-        if banner_files:
-            actual_banner = banner_files[0]
-
-    if actual_banner and os.path.exists(actual_banner):
-        with open(actual_banner, "rb") as image_file:
+    banner_files = glob.glob("ChatGPT Image*.png") + glob.glob("*banner*.jpg") + glob.glob("*banner*.png")
+    if banner_files:
+        banner_filename = banner_files[0]
+        with open(banner_filename, "rb") as image_file:
             img_src = f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
 
     html_content = f"""
@@ -207,18 +202,18 @@ try:
         position: relative;
         background: rgba(0, 0, 0, 0.6); 
         padding: 0; 
-        border-radius: 12px; 
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+        border-radius: 0; 
+        box-shadow: none; 
         backdrop-filter: blur(8px); 
         -webkit-backdrop-filter: blur(8px); 
-        width: 60%; 
-        max-width: 650px; 
-        margin: 20px auto; 
+        width: 100%; 
+        max-width: 100%; 
+        margin: 0 auto; 
         text-align: center; 
         overflow: hidden;
     }}
     
-    .banner-img {{ width: 100%; height: auto; display: block; border-top-left-radius: 12px; border-top-right-radius: 12px; margin: 0; padding: 0; }}
+    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
     .content-wrapper {{ padding: 25px; }}
     
     .top-left-area {{
@@ -367,7 +362,6 @@ try:
                             if(audio) {
                                 audio.volume = 0.5;
                                 audio.play().catch(function(error) {
-                                
                                     const playOnTouch = function() {
                                         audio.volume = 0.5;
                                         audio.play();
