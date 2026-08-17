@@ -244,18 +244,7 @@ try:
         letter-spacing: 0.5px;
     }}
 
-    .pro-title {{
-        font-family: 'Montserrat', sans-serif;
-        color: #ffffff;
-        font-size: 45px;
-        font-weight: 800;
-        margin-bottom: 2px;
-        margin-top: 5px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }}
-
-    .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
+    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
     
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
     
@@ -298,7 +287,7 @@ try:
             </div>
     """
     
-    html_content += f'<div class="pro-title">SALES</div><div class="sub-title">{custom_title}</div>'
+    html_content += f'<div class="sub-title">{custom_title}</div>'
     
     if not df.empty:
         for index, row in df.iterrows():
