@@ -20,6 +20,7 @@ excel_path = "tv sat sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
+banner_filename = "ChatGPT Image 17 Αυγ 2026, 11_15_22 π.μ._2.png"
 
 confetti_enabled = True
 if os.path.exists(confetti_path):
@@ -178,7 +179,6 @@ try:
         max_sales = 1
 
     img_src = ""
-    banner_filename = "ChatGPT Image 17 Αυγ 2026, 11_15_22 π.μ._2.png"
     if os.path.exists(banner_filename):
         with open(banner_filename, "rb") as image_file:
             img_src = f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
