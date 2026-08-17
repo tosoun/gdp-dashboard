@@ -213,7 +213,16 @@ try:
         overflow: hidden;
     }}
     
-    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
+    .banner-img {{ 
+        max-height: 130px; 
+        width: auto; 
+        max-width: 100%; 
+        height: auto; 
+        display: block; 
+        margin: 0 auto; 
+        padding: 0; 
+    }}
+    
     .content-wrapper {{ padding: 25px; }}
     
     .top-left-area {{
