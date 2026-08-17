@@ -207,18 +207,18 @@ try:
         position: relative;
         background: rgba(0, 0, 0, 0.6); 
         padding: 0; 
-        border-radius: 0; 
-        box-shadow: none; 
+        border-radius: 12px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
         backdrop-filter: blur(8px); 
         -webkit-backdrop-filter: blur(8px); 
-        width: 100%; 
-        max-width: 100%; 
-        margin: 0 auto; 
+        width: 70%; 
+        max-width: 750px; 
+        margin: 20px auto; 
         text-align: center; 
         overflow: hidden;
     }}
     
-    .banner-img {{ width: 60%; max-width: 60%; height: auto; display: block; border-radius: 0; margin: 0 auto; padding: 0; }}
+    .banner-img {{ width: 100%; height: auto; display: block; border-top-left-radius: 12px; border-top-right-radius: 12px; margin: 0; padding: 0; }}
     .content-wrapper {{ padding: 25px; }}
     
     .top-left-area {{
