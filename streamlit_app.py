@@ -22,9 +22,9 @@ time_path = os.path.join(BASE_DIR, "upload_time.txt")
 confetti_path = os.path.join(BASE_DIR, "confetti_status.txt")
 cheer_path = os.path.join(BASE_DIR, "cheer_status.txt")
 
-if 'initialized' not in st.session_state:
-    st.session_state.initialized = True
-    st.session_state.show_wakeup_warning = True
+if 'wakeup_initialized' not in st.session_state:
+    st.session_state.wakeup_initialized = True
+    st.session_state.show_wakeup_screen = True
 
 confetti_enabled = True
 if os.path.exists(confetti_path):
@@ -90,8 +90,6 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            st.session_state.show_wakeup_warning = False
-
             st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς! Γίνεται ανανέωση...")
             components.html("""
                 <script>
@@ -103,216 +101,228 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     elif password:
         st.error("Λάθος κωδικός!")
 
-def load_data():
-    if os.path.exists(excel_path):
+if st.session_state.get('show_wakeup_screen', False):
+    st.markdown("""
+        <style>
+        .wakeup-container {
+            background: rgba(0, 0, 0, 0.75);
+            border: 2px solid #e74c3c;
+            padding: 40px 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 50px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .wakeup-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 25px;
+        }
+        </style>
+        <div class="wakeup-container">
+            <div class="wakeup-text">⚠️ Ανανεωνεται καθε Σαββατο</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("Προβολή Πωλήσεων", use_container_width=True):
+            st.session_state.show_wakeup_screen = False
+            st.rerun()
+else:
+    def load_data():
+        if os.path.exists(excel_path):
+            try:
+                df = pd.read_excel(excel_path, header=None)
+                return df
+            except Exception as e:
+                return pd.DataFrame()
+        return pd.DataFrame()
+
+    file_time_str = "--:--"
+    if os.path.exists(time_path):
         try:
-            df = pd.read_excel(excel_path, header=None)
-            return df
-        except Exception as e:
-            return pd.DataFrame()
-    return pd.DataFrame()
+            with open(time_path, "r", encoding="utf-8") as tf:
+                file_time_str = tf.read().strip()
+        except Exception:
+            pass
 
-file_time_str = "--:--"
-if os.path.exists(time_path):
     try:
-        with open(time_path, "r", encoding="utf-8") as tf:
-            file_time_str = tf.read().strip()
-    except Exception:
-        pass
-
-try:
-    df = load_data()
-    
-    custom_title = "ΕΙΔΟΣ"
-    
-    if not df.empty:
-        for i in range(min(5, len(df))):
-            for j in range(len(df.columns)):
-                val = str(df.iloc[i, j]).strip()
-                if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "πληρωτ" in val.lower() and not "ποσοτ" in val.lower() and not "αξια" in val.lower() and not "κοστος" in val.lower():
-                    custom_title = val
+        df = load_data()
+        
+        custom_title = "ΕΙΔΟΣ"
+        
+        if not df.empty:
+            for i in range(min(5, len(df))):
+                for j in range(len(df.columns)):
+                    val = str(df.iloc[i, j]).strip()
+                    if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "πληρωτ" in val.lower() and not "ποσοτ" in val.lower() and not "αξια" in val.lower() and not "κοστος" in val.lower():
+                        custom_title = val
+                        break
+                if custom_title != "ΕΙΔΟΣ":
                     break
-            if custom_title != "ΕΙΔΟΣ":
-                break
 
-        header_row_idx = 0
-        for i in range(min(5, len(df))):
-            row_str = str(df.iloc[i].values).lower()
-            if "κατάστημα" in row_str or "καταστημα" in row_str:
-                header_row_idx = i
-                break
+            header_row_idx = 0
+            for i in range(min(5, len(df))):
+                row_str = str(df.iloc[i].values).lower()
+                if "κατάστημα" in row_str or "καταστημα" in row_str:
+                    header_row_idx = i
+                    break
 
-        df.columns = df.iloc[header_row_idx]
-        df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
+            df.columns = df.iloc[header_row_idx]
+            df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
 
-        col_kat = None
-        col_pos = None
-        for col in df.columns:
-            col_str = str(col).lower()
-            if "κατάστημα" in col_str or "καταστημα" in col_str:
-                col_kat = col
-            elif "ποσοτ" in col_str:
-                col_pos = col
+            col_kat = None
+            col_pos = None
+            for col in df.columns:
+                col_str = str(col).lower()
+                if "κατάστημα" in col_str or "καταστημα" in col_str:
+                    col_kat = col
+                elif "ποσοτ" in col_str:
+                    col_pos = col
 
-        if col_kat is None:
-            col_kat = df.columns[0]
-        if col_pos is None:
-            col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
+            if col_kat is None:
+                col_kat = df.columns[0]
+            if col_pos is None:
+                col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
 
-        df = df[[col_kat, col_pos]].copy()
-        df.columns = ['Κατάστημα', 'Ποσότητα']
+            df = df[[col_kat, col_pos]].copy()
+            df.columns = ['Κατάστημα', 'Ποσότητα']
+            
+            df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
+            df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
+            
+            df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
+            
+            df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
+            
+            df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
+            df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
+            
+            total_sum = df_clean['Num_Sales'].sum()
+            
+            df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
+            
+            total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
+            
+            df = pd.concat([df_stores, total_row], ignore_index=True)
+            
+            max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
+        else:
+            max_sales = 1
+
+        img_src = ""
+        banner_path = os.path.join(BASE_DIR, "spamebanner.jpg")
+        if os.path.exists(banner_path):
+            with open(banner_path, "rb") as image_file:
+                img_src = f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
+
+        html_content = f"""
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
         
-        df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
-        df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
+        <style>
+        @keyframes blink-number-slow {{
+            0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+            50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
+            100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+        }}
+
+        body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }}
         
-        df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
+        .main-container {{ 
+            position: relative;
+            background: rgba(0, 0, 0, 0.6); 
+            padding: 0; 
+            border-radius: 0; 
+            box-shadow: none; 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            width: 100%; 
+            max-width: 100%; 
+            margin: 0 auto; 
+            text-align: center; 
+            overflow: hidden;
+        }}
         
-        df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
+        .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
+        .content-wrapper {{ padding: 25px; }}
         
-        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
+        .top-left-area {{
+            text-align: left;
+            margin-bottom: 15px;
+        }}
+
+        .top-left-text {{
+            color: #3498db;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }}
+
+        .top-left-time {{
+            color: #7f8c8d;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+
+        .pro-title {{
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 2px;
+            margin-top: 5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }}
+
+        .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
         
-        total_sum = df_clean['Num_Sales'].sum()
+        .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
         
-        df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
+        .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
+        .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
+        .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
         
-        total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
+        .win-number-first {{
+            color: #2ecc71;
+            animation: blink-number-slow 2.5s infinite ease-in-out;
+            font-weight: 700;
+        }}
+
+        .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
+        .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
+        .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
         
-        df = pd.concat([df_stores, total_row], ignore_index=True)
+        .watermark {{
+            text-align: right;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            margin-right: 5px;
+            text-transform: uppercase;
+            user-select: none;
+        }}
+        </style>
         
-        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
-    else:
-        max_sales = 1
+        <div class="main-container">
+            <img src="{img_src}" class="banner-img" alt="banner">
+            <div class="content-wrapper">
+                <audio id="cheerAudio" preload="auto">
+                    <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+                </audio>
 
-    img_src = ""
-    banner_path = os.path.join(BASE_DIR, "spamebanner.jpg")
-    if os.path.exists(banner_path):
-        with open(banner_path, "rb") as image_file:
-            img_src = f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
-
-    html_content = f"""
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-    @keyframes blink-number-slow {{
-        0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
-        50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
-        100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
-    }}
-
-    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }}
-    
-    .main-container {{ 
-        position: relative;
-        background: rgba(0, 0, 0, 0.6); 
-        padding: 0; 
-        border-radius: 0; 
-        box-shadow: none; 
-        backdrop-filter: blur(8px); 
-        -webkit-backdrop-filter: blur(8px); 
-        width: 100%; 
-        max-width: 100%; 
-        margin: 0 auto; 
-        text-align: center; 
-        overflow: hidden;
-    }}
-    
-    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
-    .content-wrapper {{ padding: 25px; }}
-    
-    .top-left-area {{
-        text-align: left;
-        margin-bottom: 15px;
-    }}
-
-    .top-left-text {{
-        color: #3498db;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }}
-
-    .top-left-time {{
-        color: #7f8c8d;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }}
-
-    .pro-title {{
-        font-family: 'Montserrat', sans-serif;
-        color: #ffffff;
-        font-size: 30px;
-        font-weight: 800;
-        margin-bottom: 2px;
-        margin-top: 5px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }}
-
-    .sub-title {{ color: #3498db; font-size: 15px; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }}
-    
-    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
-    
-    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
-    .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
-    .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
-    
-    .win-number-first {{
-        color: #2ecc71;
-        animation: blink-number-slow 2.5s infinite ease-in-out;
-        font-weight: 700;
-    }}
-
-    .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
-    .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
-    .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
-    
-    .watermark {{
-        text-align: right;
-        color: rgba(255, 255, 255, 0.2);
-        font-size: 10px;
-        letter-spacing: 1px;
-        margin-top: 15px;
-        margin-right: 5px;
-        text-transform: uppercase;
-        user-select: none;
-    }}
-    
-    .wakeup-notice {{
-        background: rgba(231, 76, 60, 0.25);
-        border: 2px solid #e74c3c;
-        color: #ffffff;
-        padding: 20px;
-        border-radius: 12px;
-        font-size: 22px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 20px 0;
-        text-align: center;
-    }}
-    </style>
-    
-    <div class="main-container">
-        <img src="{img_src}" class="banner-img" alt="banner">
-        <div class="content-wrapper">
-    """
-    
-    if st.session_state.get('show_wakeup_warning', False):
-        html_content += '<div class="wakeup-notice">⚠️ Ανανεωνεται καθε Σαββατο</div>'
-    else:
-        html_content += f"""
-            <audio id="cheerAudio" preload="auto">
-                <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
-            </audio>
-
-            <div class="top-left-area">
-                <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
-                <div class="top-left-time">εως: {file_time_str}</div>
-            </div>
+                <div class="top-left-area">
+                    <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
+                    <div class="top-left-time">εως: {file_time_str}</div>
+                </div>
         """
         
         html_content += f'<div class="pro-title">SALES</div><div class="sub-title">{custom_title}</div>'
@@ -415,8 +425,8 @@ try:
         else:
             html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
         
-    html_content += '<div class="watermark">tosoun 2026</div>'
-    html_content += '</div></div>'
-    components.html(html_content, height=1250, scrolling=True)
-except Exception as e:
-    st.error(f"Σφάλμα: {e}")
+        html_content += '<div class="watermark">tosoun 2026</div>'
+        html_content += '</div></div>'
+        components.html(html_content, height=1250, scrolling=True)
+    except Exception as e:
+        st.error(f"Σφάλμα: {e}")
