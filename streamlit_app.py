@@ -16,10 +16,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-excel_path = "tv sat sales.xlsx"
-time_path = "upload_time.txt"
-confetti_path = "confetti_status.txt"
-cheer_path = "cheer_status.txt"
+# Ορισμός απόλυτης διαδρομής για να μην χάνονται τα αρχεία ανάλογα με το πού τρέχει το script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals() else "."
+excel_path = os.path.join(BASE_DIR, "tv sat sales.xlsx")
+time_path = os.path.join(BASE_DIR, "upload_time.txt")
+confetti_path = os.path.join(BASE_DIR, "confetti_status.txt")
+cheer_path = os.path.join(BASE_DIR, "cheer_status.txt")
 
 confetti_enabled = True
 if os.path.exists(confetti_path):
@@ -85,7 +87,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -99,6 +101,8 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 def load_data():
     if os.path.exists(excel_path):
         try:
+            # Χρήση του mtime (χρόνος τελευταίας τροποποίησης) για αποφυγήCaching παλαιών δεδομένων
+            file_mtime = os.path.getmtime(excel_path)
             df = pd.read_excel(excel_path, header=None)
             return df
         except Exception as e:
@@ -178,8 +182,9 @@ try:
         max_sales = 1
 
     img_src = ""
-    if os.path.exists("spamebanner.jpg"):
-        with open("spamebanner.jpg", "rb") as image_file:
+    banner_path = os.path.join(BASE_DIR, "spamebanner.jpg")
+    if os.path.exists(banner_path):
+        with open(banner_path, "rb") as image_file:
             img_src = f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
 
     html_content = f"""
