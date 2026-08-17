@@ -43,9 +43,6 @@ if os.path.exists(cheer_path):
         pass
 
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
-    if st.session_state.get('show_wakeup_warning', False):
-        st.warning("⚠️ Ανανεωνεται καθε Σαββατο")
-    
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
         uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
@@ -283,11 +280,31 @@ try:
         text-transform: uppercase;
         user-select: none;
     }}
+    
+    .wakeup-notice {{
+        background: rgba(231, 76, 60, 0.25);
+        border: 2px solid #e74c3c;
+        color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 22px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 20px 0;
+        text-align: center;
+    }}
     </style>
     
     <div class="main-container">
         <img src="{img_src}" class="banner-img" alt="banner">
         <div class="content-wrapper">
+    """
+    
+    if st.session_state.get('show_wakeup_warning', False):
+        html_content += '<div class="wakeup-notice">⚠️ Ανανεωνεται καθε Σαββατο</div>'
+    else:
+        html_content += f"""
             <audio id="cheerAudio" preload="auto">
                 <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
             </audio>
@@ -296,108 +313,108 @@ try:
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
             </div>
-    """
-    
-    html_content += f'<div class="pro-title">SALES</div><div class="sub-title">{custom_title}</div>'
-    
-    if not df.empty:
-        for index, row in df.iterrows():
-            katastima = str(row['Κατάστημα'])
-            if katastima.lower() == 'nan' or not katastima.strip():
-                continue
-            num = int(row['Num_Sales'])
-            formatted_num = f"{num:,}".replace(',', '.')
-            bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
-            if bar_width > 100: bar_width = 100
-            
-            is_tot_row = "total" in katastima.lower() or "σύνολο" in katastima.lower()
-            
-            if is_tot_row:
-                html_content += f"""
-                <div class="poll-item total-item">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span><b>{formatted_num} τμχ/κιλ</b></span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
-            elif index == 0:
-                html_content += f"""
-                <div class="poll-item" id="first-store-card">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span class="win-number-first">{formatted_num} τμχ/κιλ</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
+        """
+        
+        html_content += f'<div class="pro-title">SALES</div><div class="sub-title">{custom_title}</div>'
+        
+        if not df.empty:
+            for index, row in df.iterrows():
+                katastima = str(row['Κατάστημα'])
+                if katastima.lower() == 'nan' or not katastima.strip():
+                    continue
+                num = int(row['Num_Sales'])
+                formatted_num = f"{num:,}".replace(',', '.')
+                bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
+                if bar_width > 100: bar_width = 100
                 
-                if confetti_enabled:
+                is_tot_row = "total" in katastima.lower() or "σύνολο" in katastima.lower()
+                
+                if is_tot_row:
                     html_content += f"""
-                    <script>
-                        setTimeout(function() {{
-                            const card = document.getElementById('first-store-card');
-                            if(card) {{
-                                const rect = card.getBoundingClientRect();
-                                const x = (rect.left + rect.width / 2) / window.innerWidth;
-                                const y = (rect.top + rect.height / 2) / window.innerHeight;
-                                
-                                const triggerConfetti = () => {{
-                                    confetti({{
-                                        particleCount: 100,
-                                        spread: 80,
-                                        origin: {{ x: x, y: y }}
-                                    }});
-                                }};
+                    <div class="poll-item total-item">
+                        <div class="poll-info">
+                            <span><b>{katastima}</b></span>
+                            <span><b>{formatted_num} τμχ/κιλ</b></span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" style="width: {bar_width}%;"></div>
+                        </div>
+                    </div>
+                    """
+                elif index == 0:
+                    html_content += f"""
+                    <div class="poll-item" id="first-store-card">
+                        <div class="poll-info">
+                            <span><b>{katastima}</b></span>
+                            <span class="win-number-first">{formatted_num} τμχ/κιλ</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" style="width: {bar_width}%;"></div>
+                        </div>
+                    </div>
+                    """
+                    
+                    if confetti_enabled:
+                        html_content += f"""
+                        <script>
+                            setTimeout(function() {{
+                                const card = document.getElementById('first-store-card');
+                                if(card) {{
+                                    const rect = card.getBoundingClientRect();
+                                    const x = (rect.left + rect.width / 2) / window.innerWidth;
+                                    const y = (rect.top + rect.height / 2) / window.innerHeight;
+                                    
+                                    const triggerConfetti = () => {{
+                                        confetti({{
+                                            particleCount: 100,
+                                            spread: 80,
+                                            origin: {{ x: x, y: y }}
+                                        }});
+                                    }};
 
-                                triggerConfetti();
-                                setTimeout(triggerConfetti, 3000);
-                            }}
-                        }}, 300);
-                    </script>
-                    """
-                
-                if cheer_enabled:
-                    html_content += """
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const audio = document.getElementById('cheerAudio');
-                            if(audio) {
-                                audio.volume = 0.5;
-                                audio.play().catch(function(error) {
-                                    const playOnTouch = function() {
-                                        audio.volume = 0.5;
-                                        audio.play();
-                                        document.removeEventListener('click', playOnTouch);
-                                        document.removeEventListener('touchstart', playOnTouch);
-                                    };
-                                    document.addEventListener('click', playOnTouch);
-                                    document.addEventListener('touchstart', playOnTouch);
-                                });
-                            }
-                        });
-                    </script>
-                    """
-            else:
-                html_content += f"""
-                <div class="poll-item">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span><b>{formatted_num} τμχ/κιλ</b></span>
+                                    triggerConfetti();
+                                    setTimeout(triggerConfetti, 3000);
+                                }}
+                            }}, 300);
+                        </script>
+                        """
+                    
+                    if cheer_enabled:
+                        html_content += """
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                                const audio = document.getElementById('cheerAudio');
+                                if(audio) {
+                                    audio.volume = 0.5;
+                                    audio.play().catch(function(error) {
+                                        const playOnTouch = function() {
+                                            audio.volume = 0.5;
+                                            audio.play();
+                                            document.removeEventListener('click', playOnTouch);
+                                            document.removeEventListener('touchstart', playOnTouch);
+                                        };
+                                        document.addEventListener('click', playOnTouch);
+                                        document.addEventListener('touchstart', playOnTouch);
+                                    });
+                                }
+                            });
+                        </script>
+                        """
+                else:
+                    html_content += f"""
+                    <div class="poll-item">
+                        <div class="poll-info">
+                            <span><b>{katastima}</b></span>
+                            <span><b>{formatted_num} τμχ/κιλ</b></span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" style="width: {bar_width}%;"></div>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
-    else:
-        html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
-    
+                    """
+        else:
+            html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
+        
     html_content += '<div class="watermark">tosoun 2026</div>'
     html_content += '</div></div>'
     components.html(html_content, height=1250, scrolling=True)
