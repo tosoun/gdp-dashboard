@@ -210,7 +210,7 @@ try:
         overflow: hidden;
     }}
     
-    .banner-img {{ width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 0; margin: 0; padding: 0; }}
+    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
     .content-wrapper {{ padding: 25px; }}
     
     .top-left-area {{
@@ -389,6 +389,6 @@ try:
     
     html_content += '<div class="watermark">tosoun 2026</div>'
     html_content += '</div></div>'
-    components.html(html_content, height=1050, scrolling=True)
+    components.html(html_content, height=1250, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
