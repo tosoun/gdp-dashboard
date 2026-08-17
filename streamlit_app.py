@@ -211,8 +211,8 @@ try:
         box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
         backdrop-filter: blur(8px); 
         -webkit-backdrop-filter: blur(8px); 
-        width: 70%; 
-        max-width: 750px; 
+        width: 60%; 
+        max-width: 650px; 
         margin: 20px auto; 
         text-align: center; 
         overflow: hidden;
@@ -367,6 +367,7 @@ try:
                             if(audio) {
                                 audio.volume = 0.5;
                                 audio.play().catch(function(error) {
+                                
                                     const playOnTouch = function() {
                                         audio.volume = 0.5;
                                         audio.play();
