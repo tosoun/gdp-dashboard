@@ -12,7 +12,7 @@ st.markdown("""
     .stApp { background-color: #2c3e50 !important; }
     #MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;}
     div[data-baseweb="select"] > div, .stRadio label p { color: white !important; }
-    .block-container { padding-left: 0rem !important; padding-right: 0rem !important; padding-top: 0rem !important; }
+    .block-container { padding: 0rem 0.5rem !important; max-width: 100% !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -193,7 +193,7 @@ try:
         100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
     }}
 
-    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; }}
+    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }}
     
     .main-container {{ 
         position: relative;
@@ -205,7 +205,7 @@ try:
         -webkit-backdrop-filter: blur(8px); 
         width: 100%; 
         max-width: 100%; 
-        margin: 0; 
+        margin: 0 auto; 
         text-align: center; 
         overflow: hidden;
     }}
