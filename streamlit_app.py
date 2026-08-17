@@ -214,12 +214,12 @@ try:
     }}
     
     .banner-img {{ 
-        max-height: 130px; 
-        width: auto; 
-        max-width: 100%; 
-        height: auto; 
+        width: 100%; 
+        height: 100px; 
+        object-fit: cover; 
         display: block; 
-        margin: 0 auto; 
+        border-radius: 0; 
+        margin: 0; 
         padding: 0; 
     }}
     
