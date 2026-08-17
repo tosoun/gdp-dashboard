@@ -213,7 +213,7 @@ try:
         overflow: hidden;
     }}
     
-    .banner-img {{ width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 0; margin: 0; padding: 0; }}
+    .banner-img {{ width: 100%; height: 110px; object-fit: contain; background-color: #000; display: block; border-radius: 0; margin: 0; padding: 0; }}
     .content-wrapper {{ padding: 25px; }}
     
     .top-left-area {{
