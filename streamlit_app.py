@@ -178,9 +178,10 @@ try:
         max_sales = 1
 
     img_src = ""
-    if os.path.exists("spamebanner.jpg"):
-        with open("spamebanner.jpg", "rb") as image_file:
-            img_src = f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
+    banner_filename = "ChatGPT Image 17 Αυγ 2026, 11_15_22 π.μ._2.png"
+    if os.path.exists(banner_filename):
+        with open(banner_filename, "rb") as image_file:
+            img_src = f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
 
     html_content = f"""
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
