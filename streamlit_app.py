@@ -16,6 +16,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Ορισμός απόλυτης διαδρομής για να μην χάνονται τα αρχεία ανάλογα με το πού τρέχει το script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals() else "."
 excel_path = os.path.join(BASE_DIR, "tv sat sales.xlsx")
 time_path = os.path.join(BASE_DIR, "upload_time.txt")
@@ -38,10 +39,10 @@ if os.path.exists(cheer_path):
     except Exception:
         pass
 
-with st.expander("⚙️ Διαχείριση Ρυθμίσεων (Admin)"):
+with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        st.info("💡 Το αρχείο πωλήσεων ενημερώνεται πλέον απευθείας μέσω GitHub (`tv sat sales.xlsx`). Εδώ ρυθμίζετε μόνο την ώρα και τα εφέ.")
+        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
         
         time_options = []
         for hour in range(24):
@@ -72,7 +73,10 @@ with st.expander("⚙️ Διαχείριση Ρυθμίσεων (Admin)"):
         with col_cheer:
             cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
 
-        if st.button("Αποθήκευση Ρυθμίσεων"):
+        if uploaded_file is not None:
+            with open(excel_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+        
             current_time_str = selected_time.strftime("%H:%M")
             with open(time_path, "w", encoding="utf-8") as tf:
                 tf.write(current_time_str)
@@ -97,6 +101,8 @@ with st.expander("⚙️ Διαχείριση Ρυθμίσεων (Admin)"):
 def load_data():
     if os.path.exists(excel_path):
         try:
+            # Χρήση του mtime (χρόνος τελευταίας τροποποίησης) για αποφυγήCaching παλαιών δεδομένων
+            file_mtime = os.path.getmtime(excel_path)
             df = pd.read_excel(excel_path, header=None)
             return df
         except Exception as e:
