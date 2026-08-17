@@ -247,7 +247,7 @@ try:
     .pro-title {{
         font-family: 'Montserrat', sans-serif;
         color: #ffffff;
-        font-size: 30px;
+        font-size: 45px;
         font-weight: 800;
         margin-bottom: 2px;
         margin-top: 5px;
