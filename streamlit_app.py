@@ -19,12 +19,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-excel_path = "tv sat sales.xlsx"
+# Διόρθωση ονόματος αρχείου χωρίς κενά για απόλυτη συμβατότητα με το GitHub API
+excel_path = "tv_sat_sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
 
-# Συνάρτηση αυτόματης αποθήκευσης στο GitHub
 def upload_to_github(file_path, repo_name, token, commit_message="Update sales file"):
     if not token or not repo_name:
         return False
@@ -35,7 +35,6 @@ def upload_to_github(file_path, repo_name, token, commit_message="Update sales f
             "Accept": "application/vnd.github.v3+json"
         }
         
-        # Έλεγχος αν υπάρχει ήδη το αρχείο για να πάρουμε το sha
         r = requests.get(url, headers=headers)
         sha = None
         if r.status_code == 200:
@@ -57,7 +56,6 @@ def upload_to_github(file_path, repo_name, token, commit_message="Update sales f
     except Exception:
         return False
 
-# Ανάγνωση ρυθμίσεων
 confetti_enabled = True
 if os.path.exists(confetti_path):
     try:
@@ -77,7 +75,7 @@ if os.path.exists(cheer_path):
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv sat sales.xlsx':", type=["xlsx"])
+        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv_sat_sales.xlsx':", type=["xlsx"])
         
         time_options = []
         for hour in range(24):
@@ -123,11 +121,10 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            # Αυτόματο ανέβασμα στο GitHub μέσω Secrets
             try:
                 gh_token = st.secrets["GITHUB_TOKEN"]
                 repo_name = st.secrets["REPO_NAME"]
-                upload_to_github(excel_path, repo_name, gh_token, "Auto-update tv sat sales.xlsx")
+                upload_to_github(excel_path, repo_name, gh_token, "Auto-update tv_sat_sales.xlsx")
                 upload_to_github(time_path, repo_name, gh_token, "Auto-update upload time")
             except Exception:
                 pass
