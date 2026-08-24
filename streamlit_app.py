@@ -5,7 +5,7 @@ import datetime
 import streamlit.components.v1 as components
 import base64
 import glob
-from github import Github  # <-- Μοναδική προσθήκη για το GitHub
+import requests  # <-- Χρησιμοποιούμε requests αντί για PyGithub (υπάρχει ήδη εγκατεστημένο)
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
@@ -76,7 +76,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         if uploaded_file is not None:
             file_bytes = uploaded_file.getbuffer()
             
-            # Αποθήκευση τοπικά (όπως είχες)
+            # 1. Αποθήκευση τοπικά
             with open(excel_path, "wb") as f:
                 f.write(file_bytes)
         
@@ -90,25 +90,35 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            # Αυτόματο ανέβασμα στο GitHub για να μην χάνεται στην αδράνεια
+            # 2. Αποθήκευση στο GitHub μέσω Requests API
             try:
-                g = Github(st.secrets["GITHUB_TOKEN"])
-                repo = g.get_repo(st.secrets["REPO_NAME"])
+                token = st.secrets["GITHUB_TOKEN"]
+                repo = st.secrets["REPO_NAME"]  # Μορφή: "username/repository"
                 
-                # Excel sync
-                try:
-                    contents = repo.get_contents(excel_path)
-                    repo.update_file(excel_path, "Auto-update excel via Streamlit", file_bytes, contents.sha)
-                except:
-                    repo.create_file(excel_path, "Initial upload excel", file_bytes)
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json"
+                }
                 
-                # Time sync
-                time_bytes = current_time_str.encode("utf-8")
-                try:
-                    t_contents = repo.get_contents(time_path)
-                    repo.update_file(time_path, "Auto-update time", time_bytes, t_contents.sha)
-                except:
-                    repo.create_file(time_path, "Initial time", time_bytes)
+                def upload_to_github(file_path, data_bytes, message):
+                    url = f"https://api.github.com/repos/{repo}/contents/{file_path}"
+                    # Ελέγχουμε αν υπάρχει ήδη το αρχείο για να πάρουμε το SHA του
+                    get_resp = requests.get(url, headers=headers)
+                    sha = get_resp.json().get("sha") if get_resp.status_code == 200 else None
+                    
+                    encoded_content = base64.b64encode(data_bytes).decode("utf-8")
+                    payload = {
+                        "message": message,
+                        "content": encoded_content
+                    }
+                    if sha:
+                        payload["sha"] = sha
+                        
+                    requests.put(url, headers=headers, json=payload)
+
+                # Ανεβάζουμε το Excel και το αρχείο ώρας
+                upload_to_github(excel_path, file_bytes, "Auto-update excel via Streamlit")
+                upload_to_github(time_path, current_time_str.encode("utf-8"), "Auto-update time via Streamlit")
 
             except Exception as e:
                 st.error(f"Σφάλμα συγχρονισμού GitHub: {e}")
