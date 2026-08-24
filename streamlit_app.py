@@ -5,6 +5,8 @@ import datetime
 import streamlit.components.v1 as components
 import base64
 import glob
+import requests
+import json
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
@@ -22,6 +24,40 @@ time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
 
+# Συνάρτηση αυτόματης αποθήκευσης στο GitHub
+def upload_to_github(file_path, repo_name, token, commit_message="Update sales file"):
+    if not token or not repo_name:
+        return False
+    try:
+        url = f"https://api.github.com/repos/{repo_name}/contents/{file_path}"
+        headers = {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        # Έλεγχος αν υπάρχει ήδη το αρχείο για να πάρουμε το sha
+        r = requests.get(url, headers=headers)
+        sha = None
+        if r.status_code == 200:
+            sha = r.json().get("sha")
+            
+        with open(file_path, "rb") as f:
+            content_bytes = f.read()
+        content_encoded = base64.b64encode(content_bytes).decode("utf-8")
+        
+        data = {
+            "message": commit_message,
+            "content": content_encoded
+        }
+        if sha:
+            data["sha"] = sha
+            
+        put_r = requests.put(url, headers=headers, data=json.dumps(data))
+        return put_r.status_code in [200, 201]
+    except Exception:
+        return False
+
+# Ανάγνωση ρυθμίσεων
 confetti_enabled = True
 if os.path.exists(confetti_path):
     try:
@@ -87,7 +123,16 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!")
+            # Αυτόματο ανέβασμα στο GitHub μέσω Secrets
+            try:
+                gh_token = st.secrets["GITHUB_TOKEN"]
+                repo_name = st.secrets["REPO_NAME"]
+                upload_to_github(excel_path, repo_name, gh_token, "Auto-update tv sat sales.xlsx")
+                upload_to_github(time_path, repo_name, gh_token, "Auto-update upload time")
+            except Exception:
+                pass
+
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν και συγχρονίστηκαν επιτυχώς!")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -103,7 +148,7 @@ def load_data():
         try:
             df = pd.read_excel(excel_path, header=None)
             return df
-        except Exception as e:
+        except Exception:
             return pd.DataFrame()
     return pd.DataFrame()
 
@@ -117,7 +162,6 @@ if os.path.exists(time_path):
 
 try:
     df = load_data()
-    
     custom_title = "ΕΙΔΟΣ"
     
     if not df.empty:
@@ -137,7 +181,6 @@ try:
                 header_row_idx = i
                 break
 
-        # Διορθωμένο: Ορισμός στηλών με ασφάλεια ανεξαρτήτως πλήθους
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
         
         if len(df.columns) >= 3:
@@ -160,11 +203,9 @@ try:
         df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
         total_sum = df_clean['Num_Sales'].sum()
-        
         df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
         
         total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
-        
         df = pd.concat([df_stores, total_row], ignore_index=True)
         
         max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
@@ -206,36 +247,12 @@ try:
         overflow: hidden;
     }}
     
-    .banner-img {{ 
-        width: 100%; 
-        height: auto; 
-        display: block; 
-        border-radius: 0; 
-        margin: 0; 
-        padding: 0; 
-    }}
-    
+    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
     .content-wrapper {{ padding: 25px; }}
     
-    .top-left-area {{
-        text-align: left;
-        margin-bottom: 15px;
-    }}
-
-    .top-left-text {{
-        color: #3498db;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }}
-
-    .top-left-time {{
-        color: #7f8c8d;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }}
+    .top-left-area {{ text-align: left; margin-bottom: 15px; }}
+    .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }}
+    .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }}
 
     .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
     
@@ -245,26 +262,13 @@ try:
     .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
     .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
     
-    .win-number-first {{
-        color: #2ecc71;
-        animation: blink-number-slow 2.5s infinite ease-in-out;
-        font-weight: 700;
-    }}
+    .win-number-first {{ color: #2ecc71; animation: blink-number-slow 2.5s infinite ease-in-out; font-weight: 700; }}
 
     .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
     
-    .watermark {{
-        text-align: right;
-        color: rgba(255, 255, 255, 0.2);
-        font-size: 10px;
-        letter-spacing: 1px;
-        margin-top: 15px;
-        margin-right: 5px;
-        text-transform: uppercase;
-        user-select: none;
-    }}
+    .watermark {{ text-align: right; color: rgba(255, 255, 255, 0.2); font-size: 10px; letter-spacing: 1px; margin-top: 15px; margin-right: 5px; text-transform: uppercase; user-select: none; }}
     </style>
     
     <div class="main-container">
