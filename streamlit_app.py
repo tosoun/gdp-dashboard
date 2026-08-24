@@ -19,7 +19,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Διόρθωση ονόματος αρχείου χωρίς κενά για απόλυτη συμβατότητα με το GitHub API
 excel_path = "tv_sat_sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
@@ -75,7 +74,8 @@ if os.path.exists(cheer_path):
 with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
     password = st.text_input("Εισάγετε κωδικό διαχειριστή:", type="password")
     if password == "2845":
-        uploaded_file = st.file_uploader("Επιλέξτε ή σύρετε το νέο αρχείο 'tv_sat_sales.xlsx':", type=["xlsx"])
+        # Δέχεται οποιοδήποτε όνομα αρχείου Excel και το μετονομάζει αυτόματα σε tv_sat_sales.xlsx
+        uploaded_file = st.file_uploader("Σύρετε το νέο αρχείο πωλήσεων εδώ:", type=["xlsx"])
         
         time_options = []
         for hour in range(24):
@@ -107,6 +107,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
 
         if uploaded_file is not None:
+            # Αυτόματη αποθήκευση με το σωστό όνομα system-wide
             file_bytes = uploaded_file.getbuffer()
             with open(excel_path, "wb") as f:
                 f.write(file_bytes)
@@ -129,7 +130,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             except Exception:
                 pass
 
-            st.success("Οι ρυθμίσεις αποθηκεύτηκαν και συγχρονίστηκαν επιτυχώς!")
+            st.success("Το αρχείο μετονομάστηκε και συγχρονίστηκε επιτυχώς!")
             components.html("""
                 <script>
                     setTimeout(function() {
