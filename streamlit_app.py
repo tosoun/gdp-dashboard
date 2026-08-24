@@ -5,6 +5,7 @@ import datetime
 import streamlit.components.v1 as components
 import base64
 import glob
+from github import Github  # <-- Μοναδική προσθήκη για το GitHub
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
@@ -73,8 +74,11 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             cheer_choice = st.radio("Χειροκρότημα:", ["ΝΑΙ", "ΟΧΙ"], index=0 if cheer_enabled else 1, horizontal=True)
 
         if uploaded_file is not None:
+            file_bytes = uploaded_file.getbuffer()
+            
+            # Αποθήκευση τοπικά (όπως είχες)
             with open(excel_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+                f.write(file_bytes)
         
             current_time_str = selected_time.strftime("%H:%M")
             with open(time_path, "w", encoding="utf-8") as tf:
@@ -85,6 +89,29 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
+
+            # Αυτόματο ανέβασμα στο GitHub για να μην χάνεται στην αδράνεια
+            try:
+                g = Github(st.secrets["GITHUB_TOKEN"])
+                repo = g.get_repo(st.secrets["REPO_NAME"])
+                
+                # Excel sync
+                try:
+                    contents = repo.get_contents(excel_path)
+                    repo.update_file(excel_path, "Auto-update excel via Streamlit", file_bytes, contents.sha)
+                except:
+                    repo.create_file(excel_path, "Initial upload excel", file_bytes)
+                
+                # Time sync
+                time_bytes = current_time_str.encode("utf-8")
+                try:
+                    t_contents = repo.get_contents(time_path)
+                    repo.update_file(time_path, "Auto-update time", time_bytes, t_contents.sha)
+                except:
+                    repo.create_file(time_path, "Initial time", time_bytes)
+
+            except Exception as e:
+                st.error(f"Σφάλμα συγχρονισμού GitHub: {e}")
 
             st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
             components.html("""
