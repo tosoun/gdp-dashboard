@@ -5,7 +5,6 @@ import datetime
 import streamlit.components.v1 as components
 import base64
 import glob
-import requests  # <-- Χρησιμοποιούμε requests αντί για PyGithub (υπάρχει ήδη εγκατεστημένο)
 
 st.set_page_config(page_title="Πωλήσεις ανά Κατάστημα", layout="centered")
 
@@ -75,8 +74,6 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 
         if uploaded_file is not None:
             file_bytes = uploaded_file.getbuffer()
-            
-            # 1. Αποθήκευση τοπικά
             with open(excel_path, "wb") as f:
                 f.write(file_bytes)
         
@@ -90,40 +87,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
             with open(cheer_path, "w", encoding="utf-8") as ch:
                 ch.write(str(cheer_choice == "ΝΑΙ"))
 
-            # 2. Αποθήκευση στο GitHub μέσω Requests API
-            try:
-                token = st.secrets["GITHUB_TOKEN"]
-                repo = st.secrets["REPO_NAME"]  # Μορφή: "username/repository"
-                
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Accept": "application/vnd.github+json"
-                }
-                
-                def upload_to_github(file_path, data_bytes, message):
-                    url = f"https://api.github.com/repos/{repo}/contents/{file_path}"
-                    # Ελέγχουμε αν υπάρχει ήδη το αρχείο για να πάρουμε το SHA του
-                    get_resp = requests.get(url, headers=headers)
-                    sha = get_resp.json().get("sha") if get_resp.status_code == 200 else None
-                    
-                    encoded_content = base64.b64encode(data_bytes).decode("utf-8")
-                    payload = {
-                        "message": message,
-                        "content": encoded_content
-                    }
-                    if sha:
-                        payload["sha"] = sha
-                        
-                    requests.put(url, headers=headers, json=payload)
-
-                # Ανεβάζουμε το Excel και το αρχείο ώρας
-                upload_to_github(excel_path, file_bytes, "Auto-update excel via Streamlit")
-                upload_to_github(time_path, current_time_str.encode("utf-8"), "Auto-update time via Streamlit")
-
-            except Exception as e:
-                st.error(f"Σφάλμα συγχρονισμού GitHub: {e}")
-
-            st.success("Οι ρυθμίσεις αποθηκεύτηκαν αυτόματα! Γίνεται ανανέωση...")
+            st.success("Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!")
             components.html("""
                 <script>
                     setTimeout(function() {
@@ -173,24 +137,16 @@ try:
                 header_row_idx = i
                 break
 
-        df.columns = df.iloc[header_row_idx]
+        # Διορθωμένο: Ορισμός στηλών με ασφάλεια ανεξαρτήτως πλήθους
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
-
-        col_kat = None
-        col_pos = None
-        for col in df.columns:
-            col_str = str(col).lower()
-            if "κατάστημα" in col_str or "καταστημα" in col_str:
-                col_kat = col
-            elif "ποσοτ" in col_str:
-                col_pos = col
-
-        if col_kat is None:
-            col_kat = df.columns[0]
-        if col_pos is None:
-            col_pos = df.columns[2] if len(df.columns) > 2 else df.columns[1]
-
-        df = df[[col_kat, col_pos]].copy()
+        
+        if len(df.columns) >= 3:
+            df = df.iloc[:, [0, 2]]
+        elif len(df.columns) >= 2:
+            df = df.iloc[:, [0, 1]]
+        else:
+            df = df.iloc[:, [0, 0]]
+            
         df.columns = ['Κατάστημα', 'Ποσότητα']
         
         df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
