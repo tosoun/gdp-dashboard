@@ -77,13 +77,17 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
         uploaded_file = st.file_uploader("Σύρετε το νέο αρχείο πωλήσεων εδώ:", type=["xlsx"])
         
         time_options = []
-        for hour in range(24):
+        for hour in range(8, 23):
             for minute in (0, 30):
                 time_options.append(datetime.time(hour, minute))
+        time_options.append(datetime.time(22, 0))
+        # Deduplicate while preserving order
+        time_options = sorted(list(set(time_options)))
         
         now = datetime.datetime.now() - datetime.timedelta(hours=1)
         default_minute = 0 if now.minute < 30 else 30
-        default_time = datetime.time(now.hour, default_minute)
+        default_hour = max(8, min(22, now.hour))
+        default_time = datetime.time(default_hour, default_minute)
         
         if 'selected_half_hour' not in st.session_state:
             st.session_state.selected_half_hour = default_time
@@ -259,21 +263,21 @@ try:
         width: 100%; 
         max-width: 100%; 
         margin: 0 auto; 
-        text-align: center; 
+        text-align: left; 
         overflow: hidden;
     }}
     
     .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
-    .content-wrapper {{ padding: 25px; }}
+    .content-wrapper {{ padding: 25px; display: flex; flex-direction: column; align-items: flex-start; }}
     
-    .top-left-area {{ text-align: left; margin-bottom: 15px; }}
+    .top-center-area {{ text-align: center; margin-bottom: 15px; width: 100%; }}
     .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }}
     .top-left-subtext {{ color: #2ecc71; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }}
     .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-top: 2px; }}
 
-    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
+    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: left; width: 100%; }}
     
-    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
+    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 600px; box-sizing: border-box; }}
     
     .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
     .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
@@ -285,7 +289,7 @@ try:
     .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
     .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
     
-    .watermark {{ text-align: right; color: rgba(255, 255, 255, 0.2); font-size: 10px; letter-spacing: 1px; margin-top: 15px; margin-right: 5px; text-transform: uppercase; user-select: none; }}
+    .watermark {{ text-align: center; color: rgba(255, 255, 255, 0.2); font-size: 10px; letter-spacing: 1px; margin-top: 15px; text-transform: uppercase; user-select: none; width: 100%; max-width: 600px; }}
     </style>
     
     <div class="main-container">
@@ -295,7 +299,7 @@ try:
                 <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
             </audio>
 
-            <div class="top-left-area">
+            <div class="top-center-area">
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
                 <div class="top-left-subtext">ONLINE SALES</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
@@ -380,7 +384,7 @@ try:
     else:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
-    html_content += '<div class="watermark">tosoun 2026</div></div></div>'
+    html_content += '<div class="watermark">ΟΙ ΠΩΛΗΣΕΙΣ ΑΝΑΝΕΩΝΟΝΤΑΙ ΚΑΘΕ ΣΑΒΒΑΤΟ</div></div></div>'
     components.html(html_content, height=1250, scrolling=True)
 
 except Exception as e:
