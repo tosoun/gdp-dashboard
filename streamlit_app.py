@@ -163,8 +163,15 @@ def clean_quantity_value(val):
     except Exception:
         return 0.0
 
-def format_greek_num(num):
-    return f"{num:,.3f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+def format_smart_num(num):
+    if num == int(num):
+        return f"{int(num):,}".replace(',', '.')
+    else:
+        parts = f"{num:.3f}".split('.')
+        int_part = int(parts[0])
+        dec_part = parts[1].rstrip('0')
+        formatted_int = f"{int_part:,}".replace(',', '.')
+        return f"{formatted_int},{dec_part}"
 
 file_time_str = "--:--"
 if os.path.exists(time_path):
@@ -300,7 +307,7 @@ try:
             if katastima.lower() == 'nan' or not katastima.strip():
                 continue
             num = row['Num_Sales']
-            formatted_num = format_greek_num(num)
+            formatted_num = format_smart_num(num)
             bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
             if bar_width > 100: bar_width = 100
             
@@ -356,7 +363,7 @@ try:
                 """
 
         # TOTAL Row at bottom
-        formatted_total = format_greek_num(total_sum)
+        formatted_total = format_smart_num(total_sum)
         html_content += f"""
         <div class="poll-item total-item">
             <div class="poll-info">
