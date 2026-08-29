@@ -259,19 +259,19 @@ try:
         width: 100%; 
         max-width: 100%; 
         margin: 0 auto; 
-        text-align: center; 
+        text-align: left; 
         overflow: hidden;
     }}
     
     .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
-    .content-wrapper {{ padding: 25px; display: flex; flex-direction: column; align-items: center; }}
+    .content-wrapper {{ padding: 25px; display: flex; flex-direction: column; align-items: flex-start; }}
     
-    .top-left-area {{ text-align: center; margin-bottom: 15px; width: 100%; }}
+    .top-center-area {{ text-align: center; margin-bottom: 15px; width: 100%; }}
     .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }}
     .top-left-subtext {{ color: #2ecc71; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }}
     .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-top: 2px; }}
 
-    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; width: 100%; }}
+    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: left; width: 100%; }}
     
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 600px; box-sizing: border-box; }}
     
@@ -295,7 +295,7 @@ try:
                 <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
             </audio>
 
-            <div class="top-left-area">
+            <div class="top-center-area">
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
                 <div class="top-left-subtext">ONLINE SALES</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
