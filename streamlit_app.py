@@ -179,6 +179,7 @@ try:
 
         df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
         
+        # Επιλογή στήλης 0 (Κατάστημα) και στήλης 2 (ΠΟΣΟΤΗΤΕΣ) με βάση το Excel σας
         if len(df.columns) >= 3:
             df = df.iloc[:, [0, 2]]
         elif len(df.columns) >= 2:
@@ -195,8 +196,14 @@ try:
         
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
+        # Καθαρισμός και σωστή μετατροπή των δεκαδικών ποσοτήτων (π.χ. 20,990)
+        df_clean['Num_Sales'] = (
+            df_clean['Ποσότητα']
+            .astype(str)
+            .str.replace('.', '', regex=False)
+            .str.replace(',', '.', regex=False)
+        )
+        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0.0)
         
         total_sum = df_clean['Num_Sales'].sum()
         df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
@@ -204,9 +211,9 @@ try:
         total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
         df = pd.concat([df_stores, total_row], ignore_index=True)
         
-        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
+        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1.0
     else:
-        max_sales = 1
+        max_sales = 1.0
 
     img_src = ""
     banner_files = glob.glob("ChatGPT Image*.png") + glob.glob("*banner*.jpg") + glob.glob("*banner*.png")
@@ -287,8 +294,9 @@ try:
             katastima = str(row['Κατάστημα'])
             if katastima.lower() == 'nan' or not katastima.strip():
                 continue
-            num = int(row['Num_Sales'])
-            formatted_num = f"{num:,}".replace(',', '.')
+            num = row['Num_Sales']
+            # Εμφάνιση με μορφοποίηση δεκαδικών (π.χ. 20,990)
+            formatted_num = f"{num:,.3f}".replace(',', 'X').replace('.', ',').replace('X', '.') if isinstance(num, float) else f"{num:,}".replace(',', '.')
             bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
             if bar_width > 100: bar_width = 100
             
