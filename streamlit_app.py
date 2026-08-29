@@ -1,52 +1,90 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 import os
 
-# Ρύθμιση σελίδας
-st.set_page_config(page_title="Πωλήσεις Ειδών", layout="wide")
-
-st.title("📊 Ανάλυση Πωλήσεων ανά Κατάστημα")
-
-# Ορισμός διαδρομής αρχείου
 excel_path = "S3 - Πωλήσεις Ειδών-1.xlsx"
 
-@st.cache_data
-def load_and_process_sales():
-    if not os.path.exists(excel_path):
-        return None, "Το αρχείο Excel δεν βρέθηκε στον φάκελο."
-    
+def load_data():
+    if os.path.exists(excel_path):
+        try:
+            df = pd.read_excel(excel_path, header=None)
+            return df
+        except Exception:
+            return pd.DataFrame()
+    return pd.DataFrame()
+
+file_time_str = "--:--"
+if os.path.exists("time.txt"):
     try:
-        # Ανάγνωση φύλλου 'Export'
-        df = pd.read_excel(excel_path, sheet_name='Export')
-        
-        if 'Κατάστημα' not in df.columns or 'ΠΟΣΟΤΗΤΕΣ' not in df.columns:
-            return None, f"Οι αναμενόμενες στήλες δεν βρέθηκαν. Υπάρχουσες: {list(df.columns)}"
-        
-        # Καθαρισμός δεδομένων
-        df_clean = df.dropna(subset=['Κατάστημα']).copy()
-        mask = df_clean['Κατάστημα'].astype(str).str.contains("Total|Φίλτρα", case=False, na=False)
-        df_clean = df_clean[~mask]
-        
-        df_stores = df_clean[['Κατάστημα', 'ΠΟΣΟΤΗΤΕΣ']].copy()
-        df_stores['ΠΟΣΟΤΗΤΕΣ'] = pd.to_numeric(df_stores['ΠΟΣΟΤΗΤΕΣ'], errors='coerce').fillna(0)
-        df_stores = df_stores.sort_values(by='ΠΟΣΟΤΗΤΕΣ', ascending=False).reset_index(drop=True)
-        
-        return df_stores, None
-    except Exception as e:
-        return None, str(e)
+        with open("time.txt", "r", encoding="utf-8") as tf:
+            file_time_str = tf.read().strip()
+    except Exception:
+        pass
 
-# Εκτέλεση και εμφάνιση
-df_result, error_msg = load_and_process_sales()
+try:
+    df = load_data()
+    custom_title = "ΕΙΔΟΣ"
+    
+    if not df.empty:
+        for i in range(min(5, len(df))):
+            for j in range(len(df.columns)):
+                val = str(df.iloc[i, j]).strip()
+                if val and val.lower() != 'nan' and not "κατάστημα" in val.lower() and not "πληρωτ" in val.lower() and not "ποσοτ" in val.lower() and not "αξια" in val.lower() and not "κοστος" in val.lower():
+                    custom_title = val
+                    break
+            if custom_title != "ΕΙΔΟΣ":
+                break
 
-if error_msg:
-    st.error(f"Σφάλμα: {error_msg}")
-elif df_result is not None and not df_result.empty:
-    total_quantity = df_result['ΠΟΣΟΤΗΤΕΣ'].sum()
-    
-    # Εμφάνιση βασικής μετρικής συνόλου
-    st.metric(label="Συνολική Ποσότητα", value=f"{total_quantity:,.2f}")
-    
-    # Εμφάνιση πίνακα δεδομένων
-    st.dataframe(df_result, use_container_width=True)
-else:
-    st.warning("Δεν βρέθηκαν δεδομένα προς εμφάνιση.")
+        header_row_idx = 0
+        for i in range(min(10, len(df))):
+            row_str = str(df.iloc[i].values).lower()
+            if "κατάστημα" in row_str or "καταστημα" in row_str:
+                header_row_idx = i
+                break
+
+        df = df.iloc[header_row_idx + 1:].reset_index(drop=True)
+        
+        store_col = 0
+        qty_col = 1
+        
+        for col in range(len(df.columns)):
+            col_vals = df.iloc[:, col].astype(str).str.lower()
+            if col_vals.str.contains("κατάστημα|καταστημα", na=False).any():
+                store_col = col
+            elif col >= 1:
+                qty_col = col
+
+        df = df.iloc[:, [store_col, qty_col]]
+        df.columns = ['Κατάστημα', 'Ποσότητα']
+        
+        df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
+        df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
+        
+        df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
+        
+        df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
+        
+        df_clean['Num_Sales'] = (
+            df_clean['Ποσότητα']
+            .astype(str)
+            .str.replace(' ', '', regex=False)
+            .str.replace('.', '', regex=False)
+            .str.replace(',', '.', regex=False)
+        )
+        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).round().astype(int)
+        
+        total_sum = df_clean['Num_Sales'].sum()
+        df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
+        
+        total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
+        df = pd.concat([df_stores, total_row], ignore_index=True)
+        
+        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
+    else:
+        max_sales = 1
+
+    st.title("Πωλήσεις ανά Κατάστημα")
+    st.dataframe(df)
+
+except Exception as e:
+    st.error(f"Σφάλμα: {e}")
