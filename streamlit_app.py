@@ -195,13 +195,7 @@ try:
         
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        # Ασφαλής καθαρισμός ποσοτήτων σε ακέραιους αριθμούς
-        df_clean['Num_Sales'] = (
-            df_clean['Ποσότητα']
-            .astype(str)
-            .str.split(',').str[0]
-            .str.replace(r'\D', '', regex=True)
-        )
+        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
         df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
         
         total_sum = df_clean['Num_Sales'].sum()
@@ -391,4 +385,3 @@ try:
     components.html(html_content, height=1250, scrolling=True)
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
-    
