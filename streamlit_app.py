@@ -1,74 +1,52 @@
-import os
-import sys
+import streamlit as st
 import pandas as pd
+import os
 
-# Διασφάλιση υποστήριξης ελληνικών χαρακτήρων στην κονσόλα (Windows/Linux)
-if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except AttributeError:
-        pass
+# Ρύθμιση σελίδας
+st.set_page_config(page_title="Πωλήσεις Ειδών", layout="wide")
 
-# Δυναμικός εντοπισμός διαδρομής αρχείου στον τρέχοντα φάκελο
-current_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in locals() else os.getcwd()
-excel_path = os.path.join(current_dir, "S3 - Πωλήσεις Ειδών-1.xlsx")
+st.title("📊 Ανάλυση Πωλήσεων ανά Κατάστημα")
 
+# Ορισμός διαδρομής αρχείου
+excel_path = "S3 - Πωλήσεις Ειδών-1.xlsx"
+
+@st.cache_data
 def load_and_process_sales():
-    # Εναλλακτική αναζήτηση αρχείου τοπικά αν δεν το βρει απευθείας
-    target_path = excel_path
-    if not os.path.exists(target_path):
-        target_path = "S3 - Πωλήσεις Ειδών-1.xlsx"
-        if not os.path.exists(target_path):
-            print(f"Σφάλμα: Δεν βρέθηκε το αρχείο Excel στη διαδρομή: {target_path}")
-            return None
-
+    if not os.path.exists(excel_path):
+        return None, "Το αρχείο Excel δεν βρέθηκε στον φάκελο."
+    
     try:
-        # Ανάγνωση φύλλων εργασίας για έλεγχο
-        xls = pd.ExcelFile(target_path)
-        print(f"Επιτυχής εντοπισμός αρχείου. Διαθέσιμα φύλλα: {xls.sheet_names}")
+        # Ανάγνωση φύλλου 'Export'
+        df = pd.read_excel(excel_path, sheet_name='Export')
         
-        # Ανάγνωση του φύλλου 'Export'
-        df = pd.read_excel(target_path, sheet_name='Export')
-        
-        # Έλεγχος ύπαρξης των απαραίτητων στηλών
         if 'Κατάστημα' not in df.columns or 'ΠΟΣΟΤΗΤΕΣ' not in df.columns:
-            print("Σφάλμα: Οι αναμενόμενες στήλες 'Κατάστημα' ή 'ΠΟΣΟΤΗΤΕΣ' δεν βρέθηκαν στο φύλλο.")
-            print(f"Υπάρχουσες στήλες: {list(df.columns)}")
-            return None
+            return None, f"Οι αναμενόμενες στήλες δεν βρέθηκαν. Υπάρχουσες: {list(df.columns)}"
         
-        # Καθαρισμός δεδομένων: Αφαίρεση κενών γραμμών
+        # Καθαρισμός δεδομένων
         df_clean = df.dropna(subset=['Κατάστημα']).copy()
-        
-        # Αποκλεισμός γραμμών 'Total' και γραμμών περιγραφής φίλτρων
         mask = df_clean['Κατάστημα'].astype(str).str.contains("Total|Φίλτρα", case=False, na=False)
         df_clean = df_clean[~mask]
         
-        # Κράτημα αποκλειστικά των στηλών Καταστήματος και Ποσοτήτων
         df_stores = df_clean[['Κατάστημα', 'ΠΟΣΟΤΗΤΕΣ']].copy()
-        
-        # Μετατροπή τιμών σε αριθμητικές και διαχείριση τυχόν σφαλμάτων
         df_stores['ΠΟΣΟΤΗΤΕΣ'] = pd.to_numeric(df_stores['ΠΟΣΟΤΗΤΕΣ'], errors='coerce').fillna(0)
-        
-        # Ταξινόμηση κατά φθίνουσα σειρά (από τη μεγαλύτερη ποσότητα στη μικρότερη)
         df_stores = df_stores.sort_values(by='ΠΟΣΟΤΗΤΕΣ', ascending=False).reset_index(drop=True)
         
-        return df_stores
-
+        return df_stores, None
     except Exception as e:
-        print(f"Παρουσιάστηκε απρόσμενο σφάλμα κατά την ανάγνωση του αρχείου: {e}")
-        return None
+        return None, str(e)
 
-if __name__ == "__main__":
-    result_df = load_and_process_sales()
+# Εκτέλεση και εμφάνιση
+df_result, error_msg = load_and_process_sales()
+
+if error_msg:
+    st.error(f"Σφάλμα: {error_msg}")
+elif df_result is not None and not df_result.empty:
+    total_quantity = df_result['ΠΟΣΟΤΗΤΕΣ'].sum()
     
-    if result_df is not None and not result_df.empty:
-        total_quantity = result_df['ΠΟΣΟΤΗΤΕΣ'].sum()
-        
-        print("\n" + "="*45)
-        print("     ΑΝΑΛΥΣΗ ΠΩΛΗΣΕΩΝ ΑΝΑ ΚΑΤΑΣΤΗΜΑ")
-        print("="*45)
-        print(f"Συνολική Ποσότητα: {total_quantity:.2f}\n")
-        print(result_df.to_string(index=False))
-        print("="*45)
-    else:
-        print("Δεν βρέθηκαν δεδομένα προς εμφάνιση.")
+    # Εμφάνιση βασικής μετρικής συνόλου
+    st.metric(label="Συνολική Ποσότητα", value=f"{total_quantity:,.2f}")
+    
+    # Εμφάνιση πίνακα δεδομένων
+    st.dataframe(df_result, use_container_width=True)
+else:
+    st.warning("Δεν βρέθηκαν δεδομένα προς εμφάνιση.")
