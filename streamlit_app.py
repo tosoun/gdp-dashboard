@@ -268,7 +268,8 @@ try:
     
     .top-left-area {{ text-align: left; margin-bottom: 15px; }}
     .top-left-text {{ color: #3498db; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }}
-    .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }}
+    .top-left-subtext {{ color: #2ecc71; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }}
+    .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-top: 2px; }}
 
     .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
     
@@ -296,6 +297,7 @@ try:
 
             <div class="top-left-area">
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
+                <div class="top-left-subtext">ONLINE SALES</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
             </div>
             <div class="sub-title">{custom_title}</div>
