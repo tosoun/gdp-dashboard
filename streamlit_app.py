@@ -148,6 +148,24 @@ def load_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
+def clean_quantity_value(val):
+    if pd.isna(val):
+        return 0.0
+    if isinstance(val, (int, float)):
+        return float(val)
+    s_val = str(val).strip()
+    if ',' in s_val and '.' in s_val:
+        s_val = s_val.replace('.', '').replace(',', '.')
+    elif ',' in s_val:
+        s_val = s_val.replace(',', '.')
+    try:
+        return float(s_val)
+    except Exception:
+        return 0.0
+
+def format_greek_num(num):
+    return f"{num:,.3f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+
 file_time_str = "--:--"
 if os.path.exists(time_path):
     try:
@@ -187,26 +205,21 @@ try:
             df = df.iloc[:, [0, 0]]
             
         df.columns = ['Κατάστημα', 'Ποσότητα']
-        
         df = df.dropna(subset=['Κατάστημα', 'Ποσότητα'])
         df['Κατάστημα'] = df['Κατάστημα'].astype(str).str.strip()
         
         df = df[~df['Κατάστημα'].str.contains("Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False)]
-        
         df_clean = df[~df['Κατάστημα'].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)].copy()
         
-        df_clean['Num_Sales'] = df_clean['Ποσότητα'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-        df_clean['Num_Sales'] = pd.to_numeric(df_clean['Num_Sales'], errors='coerce').fillna(0).astype(int)
+        df_clean['Num_Sales'] = df_clean['Ποσότητα'].apply(clean_quantity_value)
         
-        total_sum = df_clean['Num_Sales'].sum()
-        df_stores = df_clean.sort_values(by='Num_Sales', ascending=False)
-        
-        total_row = pd.DataFrame([{'Κατάστημα': 'TOTAL', 'Ποσότητα': total_sum, 'Num_Sales': total_sum}])
-        df = pd.concat([df_stores, total_row], ignore_index=True)
-        
-        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1
+        df_stores = df_clean.sort_values(by='Num_Sales', ascending=False).reset_index(drop=True)
+        total_sum = df_stores['Num_Sales'].sum()
+        max_sales = df_stores['Num_Sales'].max() if not df_stores.empty else 1.0
     else:
-        max_sales = 1
+        df_stores = pd.DataFrame()
+        total_sum = 0.0
+        max_sales = 1.0
 
     img_src = ""
     banner_files = glob.glob("ChatGPT Image*.png") + glob.glob("*banner*.jpg") + glob.glob("*banner*.png")
@@ -278,35 +291,20 @@ try:
                 <div class="top-left-text">ΤΟΜΕΑΣ 3</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
             </div>
+            <div class="sub-title">{custom_title}</div>
     """
     
-    html_content += f'<div class="sub-title">{custom_title}</div>'
-    
-    if not df.empty:
-        for index, row in df.iterrows():
+    if not df_stores.empty:
+        for index, row in df_stores.iterrows():
             katastima = str(row['Κατάστημα'])
             if katastima.lower() == 'nan' or not katastima.strip():
                 continue
-            num = int(row['Num_Sales'])
-            formatted_num = f"{num:,}".replace(',', '.')
+            num = row['Num_Sales']
+            formatted_num = format_greek_num(num)
             bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
             if bar_width > 100: bar_width = 100
             
-            is_tot_row = "total" in katastima.lower() or "σύνολο" in katastima.lower()
-            
-            if is_tot_row:
-                html_content += f"""
-                <div class="poll-item total-item">
-                    <div class="poll-info">
-                        <span><b>{katastima}</b></span>
-                        <span><b>{formatted_num} τμχ/κιλ</b></span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: {bar_width}%;"></div>
-                    </div>
-                </div>
-                """
-            elif index == 0:
+            if index == 0:
                 html_content += f"""
                 <div class="poll-item" id="first-store-card">
                     <div class="poll-info">
@@ -318,7 +316,6 @@ try:
                     </div>
                 </div>
                 """
-                
                 if confetti_enabled:
                     html_content += f"""
                     <script>
@@ -328,22 +325,11 @@ try:
                                 const rect = card.getBoundingClientRect();
                                 const x = (rect.left + rect.width / 2) / window.innerWidth;
                                 const y = (rect.top + rect.height / 2) / window.innerHeight;
-                                
-                                const triggerConfetti = () => {{
-                                    confetti({{
-                                        particleCount: 100,
-                                        spread: 80,
-                                        origin: {{ x: x, y: y }}
-                                    }});
-                                }};
-
-                                triggerConfetti();
-                                setTimeout(triggerConfetti, 3000);
+                                confetti({{ particleCount: 100, spread: 80, origin: {{ x: x, y: y }} }});
                             }}
                         }}, 300);
                     </script>
                     """
-                
                 if cheer_enabled:
                     html_content += """
                     <script>
@@ -351,16 +337,7 @@ try:
                             const audio = document.getElementById('cheerAudio');
                             if(audio) {
                                 audio.volume = 0.5;
-                                audio.play().catch(function(error) {
-                                    const playOnTouch = function() {
-                                        audio.volume = 0.5;
-                                        audio.play();
-                                        document.removeEventListener('click', playOnTouch);
-                                        document.removeEventListener('touchstart', playOnTouch);
-                                    };
-                                    document.addEventListener('click', playOnTouch);
-                                    document.addEventListener('touchstart', playOnTouch);
-                                });
+                                audio.play().catch(function() {});
                             }
                         });
                     </script>
@@ -377,11 +354,25 @@ try:
                     </div>
                 </div>
                 """
+
+        # TOTAL Row at bottom
+        formatted_total = format_greek_num(total_sum)
+        html_content += f"""
+        <div class="poll-item total-item">
+            <div class="poll-info">
+                <span><b>TOTAL</b></span>
+                <span><b>{formatted_total} τμχ/κιλ</b></span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+        """
     else:
         html_content += '<div style="color: white; padding: 20px;">Δεν βρέθηκαν δεδομένα στο αρχείο Excel.</div>'
     
-    html_content += '<div class="watermark">tosoun 2026</div>'
-    html_content += '</div></div>'
+    html_content += '<div class="watermark">tosoun 2026</div></div></div>'
     components.html(html_content, height=1250, scrolling=True)
+
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
