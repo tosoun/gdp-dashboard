@@ -303,7 +303,7 @@ try:
                 border-color: rgba(255, 255, 255, 0.2);
             }
             50% {
-                transform: scale(1.04);
+                transform: scale(1.03);
                 box-shadow: 0 0 25px rgba(46, 204, 113, 0.9), 0 0 40px rgba(39, 174, 96, 0.6);
                 border-color: rgba(255, 255, 255, 0.9);
             }
@@ -314,10 +314,11 @@ try:
             }
         }
 
-        @keyframes pointing-hand {
-            0% { transform: translateX(0px) scale(1); }
-            50% { transform: translateX(-10px) scale(1.1); }
-            100% { transform: translateX(0px) scale(1); }
+        /* Animation για το χεράκι πάνω-κάτω */
+        @keyframes pointing-down {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.15); }
+            100% { transform: translateY(0px) scale(1); }
         }
 
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }
@@ -340,36 +341,42 @@ try:
         
         .redirect-btn-container {
             text-align: center;
-            margin: 25px 0;
+            margin: 30px auto 20px auto;
             position: relative;
-            display: inline-block;
+            display: block;
+            width: 100%;
+            max-width: 450px;
         }
+
+        .pointing-hand {
+            display: block;
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 8px;
+            animation: pointing-down 1s infinite ease-in-out;
+            user-select: none;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));
+        }
+        
         .redirect-btn {
-            display: inline-block;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
             background: linear-gradient(135deg, #27ae60, #219653);
             color: white !important;
-            padding: 16px 32px;
+            padding: 16px 20px;
             border-radius: 14px;
             text-decoration: none;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
             border: 2px solid rgba(255, 255, 255, 0.2);
             animation: pulse-glow 1.8s infinite ease-in-out;
         }
+        
         .redirect-btn:hover {
             background: linear-gradient(135deg, #219653, #1e8449);
-        }
-        .pointing-hand {
-            position: absolute;
-            right: -45px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 28px;
-            animation: pointing-hand 1s infinite ease-in-out;
-            user-select: none;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
         }
 
         .sub-title { color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
@@ -396,12 +403,12 @@ try:
                 </audio>
 
                 <div class="redirect-btn-container">
+                    <div class="pointing-hand">👇</div>
                     <a href="
       """,
       redirect_url,
       """
                     " target="_blank" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
-                    <div class="pointing-hand">👈</div>
                 </div>
       """,
   ]
