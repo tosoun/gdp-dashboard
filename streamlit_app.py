@@ -40,11 +40,8 @@ def upload_to_github(
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json",
     }
-
     r = requests.get(url, headers=headers)
-    sha = None
-    if r.status_code == 200:
-      sha = r.json().get("sha")
+    sha = r.json().get("sha") if r.status_code == 200 else None
 
     with open(file_path, "rb") as f:
       content_bytes = f.read()
@@ -169,8 +166,7 @@ with st.expander("⚙️ Διαχείριση Αρχείου (Admin)"):
 def load_data():
   if os.path.exists(excel_path):
     try:
-      df = pd.read_excel(excel_path, header=None)
-      return df
+      return pd.read_excel(excel_path, header=None)
     except Exception:
       return pd.DataFrame()
   return pd.DataFrame()
@@ -236,4 +232,93 @@ try:
     header_row_idx = 0
     for i in range(min(5, len(df))):
       row_str = str(df.iloc[i].values).lower()
-      if "κατάστημα" in row_str or "κατα
+      if "κατάστημα" in row_str or "καταστημα" in row_str:
+        header_row_idx = i
+        break
+
+    df = df.iloc[header_row_idx + 1 :].reset_index(drop=True)
+
+    if len(df.columns) >= 3:
+      df = df.iloc[:, [0, 2]]
+    elif len(df.columns) >= 2:
+      df = df.iloc[:, [0, 1]]
+    else:
+      df = df.iloc[:, [0, 0]]
+
+    df.columns = ["Κατάστημα", "Ποσότητα"]
+    df = df.dropna(subset=["Κατάστημα", "Ποσότητα"])
+    df["Κατάστημα"] = df["Κατάστημα"].astype(str).str.strip()
+
+    df = df[
+        ~df["Κατάστημα"].str.contains(
+            "Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False
+        )
+    ]
+    df_clean = df[
+        ~df["Κατάστημα"].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)
+    ].copy()
+
+    df_clean["Num_Sales"] = df_clean["Ποσότητα"].apply(clean_quantity_value)
+
+    df_stores = (
+        df_clean.sort_values(by="Num_Sales", ascending=False)
+        .reset_index(drop=True)
+    )
+    total_sum = df_stores["Num_Sales"].sum()
+    max_sales = df_stores["Num_Sales"].max() if not df_stores.empty else 1.0
+  else:
+    df_stores = pd.DataFrame()
+    total_sum = 0.0
+    max_sales = 1.0
+
+  img_src = ""
+  banner_files = (
+      glob.glob("ChatGPT Image*.png")
+      + glob.glob("*banner*.jpg")
+      + glob.glob("*banner*.png")
+  )
+  if banner_files:
+    banner_filename = banner_files[0]
+    with open(banner_filename, "rb") as image_file:
+      img_src = (
+          f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
+      )
+
+  html_content = f"""
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+    @keyframes blink-number-slow {{
+        0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+        50% {{ opacity: 0.25; color: #27ae60; text-shadow: none; }}
+        100% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
+    }}
+
+    body {{ font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }}
+    
+    .main-container {{ 
+        position: relative;
+        background: rgba(0, 0, 0, 0.6); 
+        padding: 0; 
+        border-radius: 0; 
+        box-shadow: none; 
+        backdrop-filter: blur(8px); 
+        -webkit-backdrop-filter: blur(8px); 
+        width: 100%; 
+        max-width: 100%; 
+        margin: 0 auto; 
+        text-align: center; 
+        overflow: hidden;
+    }}
+    
+    .banner-img {{ width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }}
+    .content-wrapper {{ padding: 25px; }}
+    
+    .redirect-btn-container {{
+        text-align: center;
+        margin: 20px 0;
+    }}
+    .redirect-btn {{
+        display: inline-block;
+        background: linear-gradient(135deg, #27ae
