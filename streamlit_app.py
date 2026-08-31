@@ -321,4 +321,134 @@ try:
     }}
     .redirect-btn {{
         display: inline-block;
-        background: linear-gradient(135deg, #27ae
+        background: linear-gradient(135deg, #27ae60, #219653);
+        color: white !important;
+        padding: 16px 30px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }}
+    .redirect-btn:hover {{
+        background: linear-gradient(135deg, #219653, #1e8449);
+        transform: scale(1.03);
+        box-shadow: 0 8px 20px rgba(39, 174, 96, 0.6);
+    }}
+
+    .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
+    
+    .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
+    
+    .poll-info {{ display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }}
+    .poll-info span:first-child {{ word-break: break-word; overflow-wrap: break-word; flex: 1; }}
+    .poll-info span:last-child {{ white-space: nowrap; text-align: right; flex-shrink: 0; }}
+    
+    .win-number-first {{ color: #2ecc71; animation: blink-number-slow 2.5s infinite ease-in-out; font-weight: 700; }}
+
+    .progress-bar-bg {{ background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }}
+    .progress-fill {{ background: #3498db; height: 100%; border-radius: 10px; }}
+    .total-item {{ background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }}
+    
+    .watermark {{ text-align: right; color: rgba(255, 255, 255, 0.2); font-size: 10px; letter-spacing: 1px; margin-top: 15px; margin-right: 5px; text-transform: uppercase; user-select: none; }}
+    </style>
+    
+    <div class="main-container">
+        <img src="{img_src}" class="banner-img" alt="banner">
+        <div class="content-wrapper">
+            <audio id="cheerAudio" preload="auto">
+                <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+            </audio>
+
+            <div class="redirect-btn-container">
+                <a href="{redirect_url}" target="_blank" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
+            </div>
+    """
+
+  if not df_stores.empty:
+    html_content += f'<div class="sub-title">{custom_title}</div>'
+    for index, row in df_stores.iterrows():
+      katastima = str(row["Κατάστημα"])
+      if katastima.lower() == "nan" or not katastima.strip():
+        continue
+      num = row["Num_Sales"]
+      formatted_num = format_smart_num(num)
+      bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
+      if bar_width > 100:
+        bar_width = 100
+
+      if index == 0:
+        html_content += f"""
+                <div class="poll-item" id="first-store-card">
+                    <div class="poll-info">
+                        <span><b>{katastima}</b></span>
+                        <span class="win-number-first">{formatted_num} τμχ/κιλ</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+        if confetti_enabled:
+          html_content += f"""
+                    <script>
+                        setTimeout(function() {{
+                            const card = document.getElementById('first-store-card');
+                            if(card) {{
+                                const rect = card.getBoundingClientRect();
+                                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                                confetti({{ particleCount: 100, spread: 80, origin: {{ x: x, y: y }} }});
+                            }}
+                        }}, 300);
+                    </script>
+                    """
+        if cheer_enabled:
+          html_content += """
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const audio = document.getElementById('cheerAudio');
+                            if(audio) {
+                                audio.volume = 0.5;
+                                audio.play().catch(function() {});
+                            }
+                        });
+                    </script>
+                    """
+      else:
+        html_content += f"""
+                <div class="poll-item">
+                    <div class="poll-info">
+                        <span><b>{katastima}</b></span>
+                        <span><b>{formatted_num} τμχ/κιλ</b></span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" style="width: {bar_width}%;"></div>
+                    </div>
+                </div>
+                """
+
+    formatted_total = format_smart_num(total_sum)
+    html_content += f"""
+        <div class="poll-item total-item">
+            <div class="poll-info">
+                <span><b>TOTAL</b></span>
+                <span><b>{formatted_total} τμχ/κιλ</b></span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+        """
+  else:
+    pass
+
+  html_content += '<div class="watermark">tosoun 2026</div></div></div>'
+  components.html(html_content, height=1250, scrolling=True)
+
+except Exception as e:
+  st.error(f"Σφάλμα: {e}")
