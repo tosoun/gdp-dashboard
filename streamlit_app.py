@@ -26,6 +26,7 @@ excel_path = "tv_sat_sales.xlsx"
 time_path = "upload_time.txt"
 confetti_path = "confetti_status.txt"
 cheer_path = "cheer_status.txt"
+redirect_url = "https://split-sales-spame-tis-times-tomeas3.streamlit.app/"
 
 
 def upload_to_github(
@@ -323,6 +324,25 @@ try:
     .top-left-subtext {{ color: #2ecc71; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }}
     .top-left-time {{ color: #7f8c8d; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-top: 2px; }}
 
+    /* Στυλ για το Link Ανακατεύθυνσης */
+    .redirect-btn {{
+        display: inline-block;
+        background-color: #27ae60;
+        color: white !important;
+        padding: 8px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: background 0.3s;
+    }}
+    .redirect-btn:hover {{
+        background-color: #219653;
+    }}
+
     .sub-title {{ color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }}
     
     .poll-item {{ background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }}
@@ -352,6 +372,12 @@ try:
                 <div class="top-left-subtext">ONLINE SALES</div>
                 <div class="top-left-time">εως: {file_time_str}</div>
             </div>
+            
+            <!-- Κουμπί Ανακατεύθυνσης στο Link που ζήτησες -->
+            <div style="text-align: left;">
+                <a href="{redirect_url}" target="_blank" class="redirect-btn">🔗 Μετάβαση σε Split Sales (Τομέας 3)</a>
+            </div>
+
             <div class="sub-title">{custom_title}</div>
     """
 
