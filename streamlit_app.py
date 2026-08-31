@@ -472,4 +472,33 @@ try:
             + '<div class="poll-info">'
             + "<span><b>"
             + katastima
-            + "
+            + "</b></span>"
+            + "<span><b>"
+            + formatted_num
+            + " τμχ/κιλ</b></span>"
+            + "</div>"
+            + '<div class="progress-bar-bg"><div class="progress-fill" style="width: '
+            + str(bar_width)
+            + '%;"></div></div>'
+            + "</div>"
+        )
+
+    formatted_total = format_smart_num(total_sum)
+    html_parts.append(
+        '<div class="poll-item total-item">'
+        + '<div class="poll-info">'
+        + "<span><b>TOTAL</b></span>"
+        + "<span><b>"
+        + formatted_total
+        + " τμχ/κιλ</b></span>"
+        + "</div>"
+        + '<div class="progress-bar-bg"><div class="progress-fill" style="width: 100%;"></div></div>'
+        + "</div>"
+    )
+
+  html_parts.append('<div class="watermark">tosoun 2026</div></div></div>')
+  final_html = "".join(html_parts)
+  components.html(final_html, height=1250, scrolling=True)
+
+except Exception as e:
+  st.error(f"Σφάλμα: {e}")
