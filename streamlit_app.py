@@ -218,11 +218,11 @@ try:
         if (
             val
             and val.lower() != "nan"
-            and not "κατάστημα" in val.lower()
-            and not "πληρωτ" in val.lower()
-            and not "ποσοτ" in val.lower()
-            and not "αξια" in val.lower()
-            and not "κοστος" in val.lower()
+            and ("κατάστημα" not in val.lower())
+            and ("πληρωτ" not in val.lower())
+            and ("ποσοτ" not in val.lower())
+            and ("αξια" not in val.lower())
+            and ("κοστος" not in val.lower())
         ):
           custom_title = val
           break
@@ -284,11 +284,111 @@ try:
           f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
       )
 
-  html_content = f"""
+  css_styles = """
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-    @keyframes blink-number-slow {{
-        0% {{ opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }}
-        50% {{ opacity: 0.25; color:
+    @keyframes blink-number-slow {
+        0% { opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }
+        50% { opacity: 0.25; color: #27ae60; text-shadow: none; }
+        100% { opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }
+    }
+
+    @keyframes pulse-glow {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        50% {
+            transform: scale(1.04);
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.9), 0 0 40px rgba(39, 174, 96, 0.6);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    @keyframes pointing-hand {
+        0% { transform: translateX(0px) scale(1); }
+        50% { transform: translateX(-10px) scale(1.1); }
+        100% { transform: translateX(0px) scale(1); }
+    }
+
+    body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }
+    
+    .main-container { 
+        position: relative;
+        background: rgba(0, 0, 0, 0.6); 
+        padding: 0; 
+        border-radius: 0; 
+        box-shadow: none; 
+        backdrop-filter: blur(8px); 
+        -webkit-backdrop-filter: blur(8px); 
+        width: 100%; 
+        max-width: 100%; 
+        margin: 0 auto; 
+        text-align: center; 
+        overflow: hidden;
+    }
+    
+    .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }
+    .content-wrapper { padding: 25px; }
+    
+    .redirect-btn-container {
+        text-align: center;
+        margin: 25px 0;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .redirect-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #27ae60, #219653);
+        color: white !important;
+        padding: 16px 32px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        animation: pulse-glow 1.8s infinite ease-in-out;
+    }
+    
+    .redirect-btn:hover {
+        background: linear-gradient(135deg, #219653, #1e8449);
+    }
+
+    .pointing-hand {
+        position: absolute;
+        right: -45px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 28px;
+        animation: pointing-hand 1s infinite ease-in-out;
+        user-select: none;
+        filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    }
+
+    .sub-title { color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .poll-item { background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .poll-info { display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }
+    .poll-info span:first-child { word-break: break-word; overflow-wrap: break-word; flex: 1; }
+    .poll-info span:last-child { white-space: nowrap; text-align: right; flex-shrink: 0; }
+    .win-number-first { color: #2ecc71; animation: blink-number-slow 2.5s infinite ease-in-out; font-weight: 700; }
+    .progress-bar-bg { background: rgba(255, 255, 255, 0.15); border-radius: 10px; height: 12px; width: 100%; overflow: hidden; }
+    .progress-fill { background: #3498db; height: 100%; border-radius: 10px; }
+    .total-item { background: rgba(52, 152, 219, 0.25); border: 1px solid #3498db; }
+    .watermark { text-align: right; color: rgba(255, 255, 255, 0.2); font-size: 10px; letter-spacing: 1px; margin-top: 15px; margin-right: 5px; text-transform: uppercase; user-select: none; }
+    </style>
+    """
+
+  html_parts = [
+      css_styles,
+      '<div class="main-container">',
