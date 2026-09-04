@@ -21,126 +21,127 @@ st.markdown(
 excel_path = "tv_sat_sales.xlsx"
 time_path = "upload_time.txt"
 redirect_url = "https://split-sales-spame-tis-times-tomeas3.streamlit.app/"
+banner_redirect_url = "https://upload-tv-spame-tosoun.streamlit.app/"
 
 confetti_enabled = True
 cheer_enabled = True
 
 
 def load_data():
-  if os.path.exists(excel_path):
-    try:
-      return pd.read_excel(excel_path, header=None)
-    except Exception:
-      return pd.DataFrame()
-  return pd.DataFrame()
+    if os.path.exists(excel_path):
+        try:
+            return pd.read_excel(excel_path, header=None)
+        except Exception:
+            return pd.DataFrame()
+    return pd.DataFrame()
 
 
 def clean_quantity_value(val):
-  if pd.isna(val):
-    return 0.0
-  if isinstance(val, (int, float)):
-    return float(val)
-  s_val = str(val).strip()
-  if "," in s_val and "." in s_val:
-    s_val = s_val.replace(".", "").replace(",", ".")
-  elif "," in s_val:
-    s_val = s_val.replace(",", ".")
-  try:
-    return float(s_val)
-  except Exception:
-    return 0.0
+    if pd.isna(val):
+        return 0.0
+    if isinstance(val, (int, float)):
+        return float(val)
+    s_val = str(val).strip()
+    if "," in s_val and "." in s_val:
+        s_val = s_val.replace(".", "").replace(",", ".")
+    elif "," in s_val:
+        s_val = s_val.replace(",", ".")
+    try:
+        return float(s_val)
+    except Exception:
+        return 0.0
 
 
 def format_smart_num(num):
-  if num == int(num):
-    return f"{int(num):,}".replace(",", ".")
-  else:
-    parts = f"{num:.3f}".split(".")
-    int_part = int(parts[0])
-    dec_part = parts[1].rstrip("0")
-    formatted_int = f"{int_part:,}".replace(",", ".")
-    return f"{formatted_int},{dec_part}"
+    if num == int(num):
+        return f"{int(num):,}".replace(",", ".")
+    else:
+        parts = f"{num:.3f}".split(".")
+        int_part = int(parts[0])
+        dec_part = parts[1].rstrip("0")
+        formatted_int = f"{int_part:,}".replace(",", ".")
+        return f"{formatted_int},{dec_part}"
 
 
 try:
-  df = load_data()
-  custom_title = "ΕΙΔΟΣ"
+    df = load_data()
+    custom_title = "ΕΙΔΟΣ"
 
-  if not df.empty:
-    for i in range(min(5, len(df))):
-      for j in range(len(df.columns)):
-        val = str(df.iloc[i, j]).strip()
-        if (
-            val
-            and val.lower() != "nan"
-            and ("κατάστημα" not in val.lower())
-            and ("πληρωτ" not in val.lower())
-            and ("ποσοτ" not in val.lower())
-            and ("αξια" not in val.lower())
-            and ("κοστος" not in val.lower())
-        ):
-          custom_title = val
-          break
-      if custom_title != "ΕΙΔΟΣ":
-        break
+    if not df.empty:
+        for i in range(min(5, len(df))):
+            for j in range(len(df.columns)):
+                val = str(df.iloc[i, j]).strip()
+                if (
+                    val
+                    and val.lower() != "nan"
+                    and ("κατάστημα" not in val.lower())
+                    and ("πληρωτ" not in val.lower())
+                    and ("ποσοτ" not in val.lower())
+                    and ("αξια" not in val.lower())
+                    and ("κοστος" not in val.lower())
+                ):
+                    custom_title = val
+                    break
+            if custom_title != "ΕΙΔΟΣ":
+                break
 
-    header_row_idx = 0
-    for i in range(min(5, len(df))):
-      row_str = str(df.iloc[i].values).lower()
-      if "κατάστημα" in row_str or "καταστημα" in row_str:
-        header_row_idx = i
-        break
+        header_row_idx = 0
+        for i in range(min(5, len(df))):
+            row_str = str(df.iloc[i].values).lower()
+            if "κατάστημα" in row_str or "καταστημα" in row_str:
+                header_row_idx = i
+                break
 
-    df = df.iloc[header_row_idx + 1 :].reset_index(drop=True)
+        df = df.iloc[header_row_idx + 1 :].reset_index(drop=True)
 
-    if len(df.columns) >= 3:
-      df = df.iloc[:, [0, 2]]
-    elif len(df.columns) >= 2:
-      df = df.iloc[:, [0, 1]]
-    else:
-      df = df.iloc[:, [0, 0]]
+        if len(df.columns) >= 3:
+            df = df.iloc[:, [0, 2]]
+        elif len(df.columns) >= 2:
+            df = df.iloc[:, [0, 1]]
+        else:
+            df = df.iloc[:, [0, 0]]
 
-    df.columns = ["Κατάστημα", "Ποσότητα"]
-    df = df.dropna(subset=["Κατάστημα", "Ποσότητα"])
-    df["Κατάστημα"] = df["Κατάστημα"].astype(str).str.strip()
+        df.columns = ["Κατάστημα", "Ποσότητα"]
+        df = df.dropna(subset=["Κατάστημα", "Ποσότητα"])
+        df["Κατάστημα"] = df["Κατάστημα"].astype(str).str.strip()
 
-    df = df[
-        ~df["Κατάστημα"].str.contains(
-            "Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False
+        df = df[
+            ~df["Κατάστημα"].str.contains(
+                "Κατάστημα|ΠΟΣΟΤ|ΠΑΡΑΔΕΙΓΜΑ|NaN", case=False, na=False
+            )
+        ]
+        df_clean = df[
+            ~df["Κατάστημα"].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)
+        ].copy()
+
+        df_clean["Num_Sales"] = df_clean["Ποσότητα"].apply(clean_quantity_value)
+
+        df_stores = (
+            df_clean.sort_values(by="Num_Sales", ascending=False)
+            .reset_index(drop=True)
         )
-    ]
-    df_clean = df[
-        ~df["Κατάστημα"].str.contains("Total|Συνολο|ΣΥΝΟΛΟ", case=False, na=False)
-    ].copy()
+        total_sum = df_stores["Num_Sales"].sum()
+        max_sales = df_stores["Num_Sales"].max() if not df_stores.empty else 1.0
+    else:
+        df_stores = pd.DataFrame()
+        total_sum = 0.0
+        max_sales = 1.0
 
-    df_clean["Num_Sales"] = df_clean["Ποσότητα"].apply(clean_quantity_value)
-
-    df_stores = (
-        df_clean.sort_values(by="Num_Sales", ascending=False)
-        .reset_index(drop=True)
+    img_src = ""
+    banner_files = (
+        glob.glob("ChatGPT Image*.png")
+        + glob.glob("*banner*.jpg")
+        + glob.glob("*banner*.png")
     )
-    total_sum = df_stores["Num_Sales"].sum()
-    max_sales = df_stores["Num_Sales"].max() if not df_stores.empty else 1.0
-  else:
-    df_stores = pd.DataFrame()
-    total_sum = 0.0
-    max_sales = 1.0
+    if banner_files:
+        banner_filename = banner_files[0]
+        with open(banner_filename, "rb") as image_file:
+            img_src = (
+                f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
+            )
 
-  img_src = ""
-  banner_files = (
-      glob.glob("ChatGPT Image*.png")
-      + glob.glob("*banner*.jpg")
-      + glob.glob("*banner*.png")
-  )
-  if banner_files:
-    banner_filename = banner_files[0]
-    with open(banner_filename, "rb") as image_file:
-      img_src = (
-          f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
-      )
-
-  html_parts = [
-      """
+    html_parts = [
+        """
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
         
@@ -190,7 +191,7 @@ try:
             text-align: center; 
             overflow: hidden;
         }
-        .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }
+        .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; cursor: pointer; }
         .content-wrapper { padding: 25px; }
         
         .redirect-btn-container {
@@ -246,11 +247,17 @@ try:
         </style>
         
         <div class="main-container">
-            <img src="
-      """,
-      img_src,
-      """
-            " class="banner-img" alt="banner">
+            <a href="
+        """,
+        banner_redirect_url,
+        """
+            " target="_blank">
+                <img src="
+        """,
+        img_src,
+        """
+                " class="banner-img" alt="banner">
+            </a>
             <div class="content-wrapper">
                 <audio id="cheerAudio" preload="auto">
                     <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
@@ -259,107 +266,107 @@ try:
                 <div class="redirect-btn-container">
                     <div class="pointing-hand">👇</div>
                     <a href="
-      """,
-      redirect_url,
-      """
+        """,
+        redirect_url,
+        """
                     " target="_blank" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
                 </div>
-      """,
-  ]
+        """,
+    ]
 
-  if not df_stores.empty:
-    html_parts.append(
-        '<div class="sub-title">' + str(custom_title) + "</div>"
-    )
-    for index, row in df_stores.iterrows():
-      katastima = str(row["Κατάστημα"])
-      if katastima.lower() == "nan" or not katastima.strip():
-        continue
-      num = row["Num_Sales"]
-      formatted_num = format_smart_num(num)
-      bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
-      if bar_width > 100:
-        bar_width = 100
-
-      if index == 0:
+    if not df_stores.empty:
         html_parts.append(
-            '<div class="poll-item" id="first-store-card">'
-            + '<div class="poll-info">'
-            + "<span><b>"
-            + katastima
-            + "</b></span>"
-            + '<span class="win-number-first">'
-            + formatted_num
-            + " τμχ/κιλ</span>"
-            + "</div>"
-            + '<div class="progress-bar-bg"><div class="progress-fill" style="width: '
-            + str(bar_width)
-            + '%;"></div></div>'
-            + "</div>"
+            '<div class="sub-title">' + str(custom_title) + "</div>"
         )
-        if confetti_enabled:
-          html_parts.append(
-              """
-                    <script>
-                        setTimeout(function() {
-                            const card = document.getElementById('first-store-card');
-                            if(card) {
-                                const rect = card.getBoundingClientRect();
-                                const x = (rect.left + rect.width / 2) / window.innerWidth;
-                                const y = (rect.top + rect.height / 2) / window.innerHeight;
-                                confetti({ particleCount: 100, spread: 80, origin: { x: x, y: y } });
-                            }
-                        }, 300);
-                    </script>
-                    """
-          )
-        if cheer_enabled:
-          html_parts.append(
-              """
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const audio = document.getElementById('cheerAudio');
-                            if(audio) {
-                                audio.volume = 0.5;
-                                audio.play().catch(function() {});
-                            }
-                        });
-                    </script>
-                    """
-          )
-      else:
+        for index, row in df_stores.iterrows():
+            katastima = str(row["Κατάστημα"])
+            if katastima.lower() == "nan" or not katastima.strip():
+                continue
+            num = row["Num_Sales"]
+            formatted_num = format_smart_num(num)
+            bar_width = round((num / max_sales) * 100) if max_sales > 0 else 0
+            if bar_width > 100:
+                bar_width = 100
+
+            if index == 0:
+                html_parts.append(
+                    '<div class="poll-item" id="first-store-card">'
+                    + '<div class="poll-info">'
+                    + "<span><b>"
+                    + katastima
+                    + "</b></span>"
+                    + '<span class="win-number-first">'
+                    + formatted_num
+                    + " τμχ/κιλ</span>"
+                    + "</div>"
+                    + '<div class="progress-bar-bg"><div class="progress-fill" style="width: '
+                    + str(bar_width)
+                    + '%;"></div></div>'
+                    + "</div>"
+                )
+                if confetti_enabled:
+                    html_parts.append(
+                        """
+                        <script>
+                            setTimeout(function() {
+                                const card = document.getElementById('first-store-card');
+                                if(card) {
+                                    const rect = card.getBoundingClientRect();
+                                    const x = (rect.left + rect.width / 2) / window.innerWidth;
+                                    const y = (rect.top + rect.height / 2) / window.innerHeight;
+                                    confetti({ particleCount: 100, spread: 80, origin: { x: x, y: y } });
+                                }
+                            }, 300);
+                        </script>
+                        """
+                    )
+                if cheer_enabled:
+                    html_parts.append(
+                        """
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                                const audio = document.getElementById('cheerAudio');
+                                if(audio) {
+                                    audio.volume = 0.5;
+                                    audio.play().catch(function() {});
+                                }
+                            });
+                        </script>
+                        """
+                    )
+            else:
+                html_parts.append(
+                    '<div class="poll-item">'
+                    + '<div class="poll-info">'
+                    + "<span><b>"
+                    + katastima
+                    + "</b></span>"
+                    + "<span><b>"
+                    + formatted_num
+                    + " τμχ/κιλ</b></span>"
+                    + "</div>"
+                    + '<div class="progress-bar-bg"><div class="progress-fill" style="width: '
+                    + str(bar_width)
+                    + '%;"></div></div>'
+                    + "</div>"
+                )
+
+        formatted_total = format_smart_num(total_sum)
         html_parts.append(
-            '<div class="poll-item">'
+            '<div class="poll-item total-item">'
             + '<div class="poll-info">'
+            + "<span><b>TOTAL</b></span>"
             + "<span><b>"
-            + katastima
-            + "</b></span>"
-            + "<span><b>"
-            + formatted_num
+            + formatted_total
             + " τμχ/κιλ</b></span>"
             + "</div>"
-            + '<div class="progress-bar-bg"><div class="progress-fill" style="width: '
-            + str(bar_width)
-            + '%;"></div></div>'
+            + '<div class="progress-bar-bg"><div class="progress-fill" style="width: 100%;"></div></div>'
             + "</div>"
         )
 
-    formatted_total = format_smart_num(total_sum)
-    html_parts.append(
-        '<div class="poll-item total-item">'
-        + '<div class="poll-info">'
-        + "<span><b>TOTAL</b></span>"
-        + "<span><b>"
-        + formatted_total
-        + " τμχ/κιλ</b></span>"
-        + "</div>"
-        + '<div class="progress-bar-bg"><div class="progress-fill" style="width: 100%;"></div></div>'
-        + "</div>"
-    )
-
-  html_parts.append('<div class="watermark">tosoun 2026</div></div></div>')
-  final_html = "".join(html_parts)
-  components.html(final_html, height=1250, scrolling=True)
+    html_parts.append('<div class="watermark">tosoun 2026</div></div></div>')
+    final_html = "".join(html_parts)
+    components.html(final_html, height=1250, scrolling=True)
 
 except Exception as e:
-  st.error(f"Σφάλμα: {e}")
+    st.error(f"Σφάλμα: {e}")
