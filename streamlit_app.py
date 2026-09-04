@@ -13,6 +13,75 @@ st.markdown(
     .stApp { background-color: #2c3e50 !important; }
     #MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;}
     .block-container { padding: 0rem 0.5rem !important; max-width: 100% !important; }
+    
+    @keyframes pulse-glow {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        50% {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.9), 0 0 40px rgba(39, 174, 96, 0.6);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    @keyframes pointing-down {
+        0% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-8px) scale(1.15); }
+        100% { transform: translateY(0px) scale(1); }
+    }
+
+    .pointing-hand {
+        display: block;
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 8px;
+        animation: pointing-down 1s infinite ease-in-out;
+        user-select: none;
+        filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));
+    }
+    
+    .redirect-btn {
+        display: block;
+        width: 100%;
+        max-width: 450px;
+        margin: 20px auto;
+        box-sizing: border-box;
+        background: linear-gradient(135deg, #27ae60, #219653);
+        color: white !important;
+        padding: 16px 20px;
+        border-radius: 14px;
+        text-decoration: none;
+        text-align: center;
+        font-size: 17px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        animation: pulse-glow 1.8s infinite ease-in-out;
+    }
+    
+    .redirect-btn:hover {
+        background: linear-gradient(135deg, #219653, #1e8449);
+        color: white !important;
+    }
+
+    .banner-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 0;
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -139,6 +208,25 @@ try:
                 f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
             )
 
+    # 1. Clickable Banner έξω από το iframe
+    if img_src:
+        st.markdown(
+            f'<a href="{target_url}" target="_self"><img src="{img_src}" class="banner-img" alt="banner"></a>',
+            unsafe_allow_html=True,
+        )
+
+    # 2. Clickable Button έξω από το iframe
+    st.markdown(
+        f"""
+        <div style="text-align: center; margin-top: 20px;">
+            <div class="pointing-hand">👇</div>
+            <a href="{target_url}" target="_self" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 3. Περιεχόμενο λίστας (στατιστικά, μπάρες προόδου, confetti) μέσα στο components.html
     html_parts = [
         """
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -151,35 +239,11 @@ try:
             100% { opacity: 1; color: #2ecc71; text-shadow: 0 0 12px rgba(46, 204, 113, 0.7); }
         }
 
-        @keyframes pulse-glow {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-            50% {
-                transform: scale(1.03);
-                box-shadow: 0 0 25px rgba(46, 204, 113, 0.9), 0 0 40px rgba(39, 174, 96, 0.6);
-                border-color: rgba(255, 255, 255, 0.9);
-            }
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 10px rgba(39, 174, 96, 0.4), 0 6px 15px rgba(39, 174, 96, 0.4);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-        }
-
-        @keyframes pointing-down {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-8px) scale(1.15); }
-            100% { transform: translateY(0px) scale(1); }
-        }
-
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background: transparent; width: 100%; overflow-x: hidden; }
         .main-container { 
             position: relative;
             background: rgba(0, 0, 0, 0.6); 
-            padding: 0; 
+            padding: 15px; 
             border-radius: 0; 
             box-shadow: none; 
             backdrop-filter: blur(8px); 
@@ -190,57 +254,6 @@ try:
             text-align: center; 
             overflow: hidden;
         }
-        .clickable-area {
-            cursor: pointer;
-            width: 100%;
-            display: block;
-            margin: 0;
-            padding: 0;
-        }
-        .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }
-        .content-wrapper { padding: 25px; }
-        
-        .redirect-btn-container {
-            text-align: center;
-            margin: 30px auto 20px auto;
-            position: relative;
-            display: block;
-            width: 100%;
-            max-width: 450px;
-        }
-
-        .pointing-hand {
-            display: block;
-            text-align: center;
-            font-size: 32px;
-            margin-bottom: 8px;
-            animation: pointing-down 1s infinite ease-in-out;
-            user-select: none;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));
-        }
-        
-        .redirect-btn {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            background: linear-gradient(135deg, #27ae60, #219653);
-            color: white !important;
-            padding: 16px 20px;
-            border-radius: 14px;
-            text-decoration: none;
-            font-size: 17px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            animation: pulse-glow 1.8s infinite ease-in-out;
-            cursor: pointer;
-        }
-        
-        .redirect-btn:hover {
-            background: linear-gradient(135deg, #219653, #1e8449);
-        }
-
         .sub-title { color: #3498db; font-size: 18px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .poll-item { background: rgba(255, 255, 255, 0.08); padding: 12px 18px; border-radius: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.1); }
         .poll-info { display: flex; justify-content: space-between; align-items: flex-start; color: white; font-size: 15px; font-weight: 600; margin-bottom: 8px; gap: 10px; }
@@ -254,31 +267,10 @@ try:
         </style>
         
         <div class="main-container">
-            <div class="clickable-area" onclick="window.top.location.href='
-        """,
-        target_url,
-        """
-            '">
-                <img src="
-        """,
-        img_src,
-        """
-                " class="banner-img" alt="banner">
-            </div>
-            <div class="content-wrapper">
-                <audio id="cheerAudio" preload="auto">
-                    <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
-                </audio>
-
-                <div class="redirect-btn-container">
-                    <div class="pointing-hand">👇</div>
-                    <div class="redirect-btn" onclick="window.top.location.href='
-        """,
-        target_url,
-        """
-                    '">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</div>
-                </div>
-        """,
+            <audio id="cheerAudio" preload="auto">
+                <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
+            </audio>
+    """,
     ]
 
     if not df_stores.empty:
@@ -371,9 +363,9 @@ try:
             + "</div>"
         )
 
-    html_parts.append('<div class="watermark">tosoun 2026</div></div></div>')
+    html_parts.append('<div class="watermark">tosoun 2026</div></div>')
     final_html = "".join(html_parts)
-    components.html(final_html, height=1250, scrolling=True)
+    components.html(final_html, height=1100, scrolling=True)
 
 except Exception as e:
     st.error(f"Σφάλμα: {e}")
