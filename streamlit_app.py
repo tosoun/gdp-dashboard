@@ -20,8 +20,7 @@ st.markdown(
 
 excel_path = "tv_sat_sales.xlsx"
 time_path = "upload_time.txt"
-redirect_url = "https://split-sales-spame-tis-times-tomeas3.streamlit.app/"
-banner_redirect_url = "https://upload-tv-spame-tosoun.streamlit.app/"
+target_url = "https://upload-tv-spame-tosoun.streamlit.app/"
 
 confetti_enabled = True
 cheer_enabled = True
@@ -191,7 +190,7 @@ try:
             text-align: center; 
             overflow: hidden;
         }
-        .banner-container {
+        .clickable-area {
             cursor: pointer;
             width: 100%;
             display: block;
@@ -235,6 +234,7 @@ try:
             letter-spacing: 1px;
             border: 2px solid rgba(255, 255, 255, 0.2);
             animation: pulse-glow 1.8s infinite ease-in-out;
+            cursor: pointer;
         }
         
         .redirect-btn:hover {
@@ -254,9 +254,9 @@ try:
         </style>
         
         <div class="main-container">
-            <div class="banner-container" onclick="window.top.location.href='
+            <div class="clickable-area" onclick="window.top.location.href='
         """,
-        banner_redirect_url,
+        target_url,
         """
             '">
                 <img src="
@@ -272,11 +272,11 @@ try:
 
                 <div class="redirect-btn-container">
                     <div class="pointing-hand">👇</div>
-                    <a href="
+                    <div class="redirect-btn" onclick="window.top.location.href='
         """,
-        redirect_url,
+        target_url,
         """
-                    " target="_blank" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
+                    '">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</div>
                 </div>
         """,
     ]
