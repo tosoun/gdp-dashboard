@@ -208,25 +208,25 @@ try:
                 f"data:image/png;base64,{base64.b64encode(image_file.read()).decode()}"
             )
 
-    # 1. Clickable Banner έξω από το iframe
+    # 1. Clickable Banner με target="_blank" (νεα καρτέλα)
     if img_src:
         st.markdown(
-            f'<a href="{target_url}" target="_self"><img src="{img_src}" class="banner-img" alt="banner"></a>',
+            f'<a href="{target_url}" target="_blank"><img src="{img_src}" class="banner-img" alt="banner"></a>',
             unsafe_allow_html=True,
         )
 
-    # 2. Clickable Button έξω από το iframe
+    # 2. Clickable Button με target="_blank" (νεα καρτέλα)
     st.markdown(
         f"""
         <div style="text-align: center; margin-top: 20px;">
             <div class="pointing-hand">👇</div>
-            <a href="{target_url}" target="_self" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
+            <a href="{target_url}" target="_blank" class="redirect-btn">🔗 ΜΕΤΑΒΑΣΗ ΣΤΟΝ ΤΟΜΕΑ 3</a>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # 3. Περιεχόμενο λίστας (στατιστικά, μπάρες προόδου, confetti) μέσα στο components.html
+    # 3. Περιεχόμενο λίστας (στατιστικά, μπάρες προόδου, confetti)
     html_parts = [
         """
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
