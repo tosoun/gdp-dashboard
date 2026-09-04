@@ -191,7 +191,14 @@ try:
             text-align: center; 
             overflow: hidden;
         }
-        .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; cursor: pointer; }
+        .banner-container {
+            cursor: pointer;
+            width: 100%;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+        .banner-img { width: 100%; height: auto; display: block; border-radius: 0; margin: 0; padding: 0; }
         .content-wrapper { padding: 25px; }
         
         .redirect-btn-container {
@@ -247,17 +254,17 @@ try:
         </style>
         
         <div class="main-container">
-            <a href="
+            <div class="banner-container" onclick="window.top.location.href='
         """,
         banner_redirect_url,
         """
-            " target="_blank">
+            '">
                 <img src="
         """,
         img_src,
         """
                 " class="banner-img" alt="banner">
-            </a>
+            </div>
             <div class="content-wrapper">
                 <audio id="cheerAudio" preload="auto">
                     <source src="https://www.myinstants.com/media/sounds/applause.mp3" type="audio/mpeg">
